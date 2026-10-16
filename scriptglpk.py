@@ -1,5 +1,6 @@
 import argparse
 import subprocess
+import os
 
 
 # ---------------- funciones para gestionar el ejemplo.in y crear el archivo .dat ----------------
@@ -17,13 +18,9 @@ def leer_in(archivo_in):
             print(n_lado_cajas) # depurar
 
             prioridades = f.readline().split()
-            prioridades.replace(" ","") #TODO: enrique quiere cambiarlo
+            # prioridades.replace(" ","") #TODO: enrique quiere cambiarlo
             print(prioridades) # depurar
 
-            # for i in prioridades:
-            #     entero = int(i)
-            #     prioridades.pop(0)
-            #     prioridades.append(entero)
 
             prioridades_enteros = []
             for i in prioridades:
@@ -39,6 +36,7 @@ def leer_in(archivo_in):
         return n_lado_cajas, prioridades
     else:
         raise ValueError("l**2 no coincide con el número de prioridades")
+
 
 def crear_archivo_data(archivo_in, nombre_archivo_dat): #FIXME ruta dat o nombre del archivo (1)?
     n_lado_cajas, prioridades = leer_in(archivo_in)
@@ -57,6 +55,10 @@ def crear_archivo_data(archivo_in, nombre_archivo_dat): #FIXME ruta dat o nombre
     return nombre_archivo_dat
 
 def main():
+    
+
+    print("Carpeta actual:", os.getcwd())
+    print("Archivos:", os.listdir())
     #TODO: Estructurar mejor el código con diferentes funciones
     parser = argparse.ArgumentParser() 
     parser.add_argument("--nombre_fichero_in", type = str, required = True)
@@ -65,8 +67,8 @@ def main():
 
 
     #FIXME: No usar path local, sino global 
-    path_local_glpk = r"C:\Users\cheve\Downloads\2_HEURÍSTICA\TrabajoGLPK\winglpk-4.65\glpk-4.65\w64\glpsol.exe" # PATH Ordenador Ángel r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe"
-    modelo = "parte-1.mod"
+    path_local_glpk = r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" #r"C:\Users\cheve\Downloads\2_HEURÍSTICA\TrabajoGLPK\winglpk-4.65\glpk-4.65\w64\glpsol.exe" # PATH Ordenador Ángel r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe"
+    modelo = "part-1.mod"
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat) #FIXME ruta dat o nombre del archivo (2)?
 
 
@@ -75,8 +77,8 @@ def main():
 
     
     
-    subprocess.run(comando, capture_output=True, text=True, check = True) #what is capture_output and text?
-
+    subprocess.run(comando, check = True) #what is capture_output and text?
+    #subprocess.run(comando, capture_output=True, text=True, check = True)
 
 
     # cols, rows, coste, contenido_sol = parsear_solucion(fichero_sol) #FIXME: I dont Understand mr Echeverria
