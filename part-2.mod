@@ -35,7 +35,7 @@ s.t. una_posicion_por_caja {c in CAJAS}: sum{i in FILAS, j in COLUMNAS, k in ALT
 s.t. una_caja_por_posicion {i in FILAS, j in COLUMNAS, k in ALTURAS}: sum {c in CAJAS} x[c,i,j,k] = 1;
 
 s.t. orden_prioridad {i in FILAS, j in COLUMNAS, k in ALTURAS: i < L}:
-    sum{c in CAJAS} prioridad[c] * x[c,i+1,j,k] <= sum{c in CAJAS} prioridad[k] * x[c,i,j,k]; #TODO: MenorOigual o menor estrictor?
+    sum{c in CAJAS} prioridad[c] * x[c,i+1,j,k] <= sum{c in CAJAS} prioridad[c] * x[c,i,j,k]; #TODO: MenorOigual o menor estrictor?
 
 s.t. Resistencia {i in FILAS, j in COLUMNAS, k in ALTURAS: k < K}:
     sum{c in CAJAS} capacidad[c] * x[c,i,j,k] >= sum{kp in ALTURAS, c in CAJAS: kp > k} peso[c] * x[c,i,j,kp];

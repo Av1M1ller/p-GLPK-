@@ -61,7 +61,7 @@ def main():
     parser.add_argument("--nombre_fichero_dat", type = str, required = True)
     args = parser.parse_args()
 
-    path_local_glpk = r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe # "glpksol" #r"C:\Users\cheve\Downloads\2_HEURÍSTICA\TrabajoGLPK\winglpk-4.65\glpk-4.65\w64\glpsol.exe" # PATH Ordenador Ángel r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe"
+    path_local_glpk = r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" # "glpksol" #r"C:\Users\cheve\Downloads\2_HEURÍSTICA\TrabajoGLPK\winglpk-4.65\glpk-4.65\w64\glpsol.exe" # PATH Ordenador Ángel r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe"
     modelo = "part-1.mod"
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat) #FIXME ruta dat o nombre del archivo (2)?
 
