@@ -63,7 +63,7 @@ def crear_archivo_data(archivo_in, nombre_archivo_dat): #FIXME ruta dat o nombre
             f.write(f"{idx} {peso}\n")
 
         f.write("param capacidad :=\n")
-        for idx, capacidad in enumerate(pesos, start =1):
+        for idx, capacidad in enumerate(capacidad, start =1):
             f.write(f"{idx} {capacidad}\n")
 
         f.write(";\n\nend;\n")
@@ -78,8 +78,8 @@ def main():
     parser.add_argument("--nombre_fichero_dat", type = str, required = True)
     args = parser.parse_args()
 
-    path_local_glpk = r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe # "glpksol" #r"C:\Users\cheve\Downloads\2_HEURÍSTICA\TrabajoGLPK\winglpk-4.65\glpk-4.65\w64\glpsol.exe" # PATH Ordenador Ángel r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe"
-    modelo = "part-2.mod"
+    path_local_glpk = r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe # "glpsol" #r"C:\Users\cheve\Downloads\2_HEURÍSTICA\TrabajoGLPK\winglpk-4.65\glpk-4.65\w64\glpsol.exe" # PATH Ordenador Ángel r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe"
+    modelo = "part-3.mod"
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
 
 

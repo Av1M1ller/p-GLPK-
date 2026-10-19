@@ -1,6 +1,5 @@
 import argparse
 import subprocess
-import os
 
 
 # ---------------- funciones para gestionar el ejemplo.in y crear el archivo .dat ----------------
@@ -56,39 +55,18 @@ def crear_archivo_data(archivo_in, nombre_archivo_dat): #FIXME ruta dat o nombre
 
 def main():
     
-
-    print("Carpeta actual:", os.getcwd())
-    print("Archivos:", os.listdir())
     #TODO: Estructurar mejor el código con diferentes funciones
     parser = argparse.ArgumentParser() 
     parser.add_argument("--nombre_fichero_in", type = str, required = True)
     parser.add_argument("--nombre_fichero_dat", type = str, required = True)
     args = parser.parse_args()
 
-
-    #FIXME: No usar path local, sino global 
-    path_local_glpk = r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" #r"C:\Users\cheve\Downloads\2_HEURÍSTICA\TrabajoGLPK\winglpk-4.65\glpk-4.65\w64\glpsol.exe" # PATH Ordenador Ángel r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe"
+    path_local_glpk = r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe # "glpksol" #r"C:\Users\cheve\Downloads\2_HEURÍSTICA\TrabajoGLPK\winglpk-4.65\glpk-4.65\w64\glpsol.exe" # PATH Ordenador Ángel r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe"
     modelo = "part-1.mod"
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat) #FIXME ruta dat o nombre del archivo (2)?
 
 
     comando = [path_local_glpk,"--math", modelo,"--data", datos,"--output", "resultado.txt"]
-
-
-    
-    
     subprocess.run(comando, check = True) #what is capture_output and text?
-    #subprocess.run(comando, capture_output=True, text=True, check = True)
-
-
-    # cols, rows, coste, contenido_sol = parsear_solucion(fichero_sol) #FIXME: I dont Understand mr Echeverria
-    # print(f"{cols} {rows} {coste:.2f}")
-
-    # n_lado_cajas, prioridades = leer_in(fichero_in)
-    # ruta_grafica = fichero_dat.replace(".dat", ".out")
-    # generar_salida_grafica(contenido_sol, n_lado_cajas, prioridades, ruta_grafica)
-
-
 
 main() #esto hace que se ejecute la función main y por tanto el código que está dentro de él, creo que es mejor así para que esté más estructurado el código
-
