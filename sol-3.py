@@ -18,10 +18,10 @@ def leer_in(archivo_in):
     <p1 p2 ... pn >     prioridades
     <ω1 ω2 ... ωn >     pesos
     <γ1 γ2 ... γn >     capacidad
-    2 3
-    1 3 349 11 7 10 3218
-    3 4 9 11 13 4 15 2817 10
-    0 0 0 11 3 21 14 2 19 12 14 16
+    3 2
+    1 3 3 13 9 11 17 4 3
+    3 11 9 1 13 4 15 11 7
+    13 6 2 5 13 21 14 8 19
     """
 
     try:
@@ -78,7 +78,7 @@ def main():
     parser.add_argument("--nombre_fichero_dat", type = str, required = True)
     args = parser.parse_args()
 
-    path_local_glpk = r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe # "glpsol" #r"C:\Users\cheve\Downloads\2_HEURÍSTICA\TrabajoGLPK\winglpk-4.65\glpk-4.65\w64\glpsol.exe" # PATH Ordenador Ángel r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe"
+    path_local_glpk = r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" # "glpsol" #r"C:\Users\cheve\Downloads\2_HEURÍSTICA\TrabajoGLPK\winglpk-4.65\glpk-4.65\w64\glpsol.exe" # PATH Ordenador Ángel r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe"
     modelo = "part-3.mod"
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
 
