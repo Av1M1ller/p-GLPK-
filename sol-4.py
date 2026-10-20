@@ -1,5 +1,6 @@
 import argparse
 import subprocess
+import re
 
 
 def get_ints(lista_strings: list):
@@ -77,6 +78,30 @@ def crear_archivo_data(archivo_in, nombre_archivo_dat): #FIXME ruta dat o nombre
 
     return nombre_archivo_dat
 
+
+def crear_archivo_salida(nombre_archivo_glpk= "resultado.txt", nombre_archivo_salida):
+    """
+         3 x[1,1,3]     *              0             0             1 
+    """
+    resultado = []
+    patron = r"\s*\d\s+x\[\d+,\d+,\d+\]\s+\*\s+0\s+0\s+1"
+    with open(nombre_archivo_glpk, "r") as f:
+        for linea in f:
+            coincidencia = re.search(patron, linea)
+            if coincidencia:
+                linea = linea.split().strip()
+                resultado.append([linea])
+
+
+    with open(nombre_archivo_salida, "w") as f:
+        f.write(f"fila_1: ")
+        f.write(f"{resultado[0][3]}, {resultado[0][5]}, {resultado[0][7]}") #indice_caja, i_caja, j_caja
+        f.write(f"fila_2: ")
+        f.write(f"{resultado[1][3]}, {resultado[1][5]}, {resultado[1][7]}") #indice_caja, i_caja, j_caja
+        f.write(f"fila_3: ")
+        f.write(f"{resultado[2][3]}, {resultado[2][5]}, {resultado[2][7]}") #indice_caja, i_caja, j_caja
+
+
 def main():
     
     #TODO: Estructurar mejor el código con diferentes funciones
@@ -92,6 +117,7 @@ def main():
 
     comando = [path_local_glpk,"--math", modelo,"--data", datos,"--output", "resultado.txt"]
     subprocess.run(comando, check = True) #what is capture_output and text?
+    (nombre_archivo_glpk="resultado.txt", nombre_archivo_salida="output-4.txt")
 
 main() #esto hace que se ejecute la función main y por tanto el código que está dentro de él, creo que es mejor así para que esté más estructurado el código
 
