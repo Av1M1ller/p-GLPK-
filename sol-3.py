@@ -3,7 +3,9 @@ import subprocess
 
 
 def get_ints(lista_strings: list):
-    lista_strings.split()
+    for elemento in lista_strings:
+        elemento.strip()
+    lista_strings = lista_strings.split()
     lista_procesada = []             # para no tener que modificar la lista de entrada 
     for string in lista_strings:
         lista_procesada.append(int(string))
@@ -53,18 +55,24 @@ def crear_archivo_data(archivo_in, nombre_archivo_dat): #FIXME ruta dat o nombre
         f.write("data;\n\n") #FIXME: doble salto de línea?
         f.write(f"param L := {n_cajas};\n\n")
         f.write(f"param K := {n_niveles};\n\n")
+        f.write(f"param n := {len(prioridades)};\n\n") # calculo el valor de n con el número de prioridades, porque equivale al número de cajas
         f.write("param prioridad :=\n")
         # Escribimos cada par: posición valor
         for idx, valor in enumerate(prioridades, start=1):
             f.write(f"{idx} {valor}\n")
 
+        f.write(";\n\n")
+
         f.write("param peso :=\n")
         for idx, peso in enumerate(pesos, start =1):
             f.write(f"{idx} {peso}\n")
 
+        f.write(";\n\n")
+
         f.write("param capacidad :=\n")
         for idx, capacidad in enumerate(capacidad, start =1):
             f.write(f"{idx} {capacidad}\n")
+
 
         f.write(";\n\nend;\n")
 

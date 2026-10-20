@@ -3,15 +3,14 @@
 
 param L, integer, > 0;
 param K, integer, > 0;
-param H, integer, >0;
 
-param n, integer, >0, <= L * L * H;
+param n, integer, >0, <= L * L * K;
 
 # ---------------------------------------------------------------------
 
 set FILAS := 1..L;
 set COLUMNAS := 1..L;
-set ALTURAS := 1..H;
+set ALTURAS := 1..K;
 set CAJAS  := 1..n;
 
 # -------------- PARÁMETROS ASOCIADOS A "LA CAJA" ---------------------
@@ -39,7 +38,7 @@ s.t. una_caja_por_posicion {i in FILAS, j in COLUMNAS, k in ALTURAS}: sum {c in 
 s.t. orden_prioridad {i in FILAS, j in COLUMNAS, k in ALTURAS: i < L}:
     sum{c in CAJAS} prioridad[c] * x[c,i+1,j,k] <= sum{c in CAJAS} prioridad[c] * x[c,i,j,k]; #TODO: MenorOigual o menor estrictor?
 
-s.t. Resistencia {i in FILAS, j in COLUMNAS, k in ALTURAS: k < H}:
+s.t. Resistencia {i in FILAS, j in COLUMNAS, k in ALTURAS: k < K}:
     sum{c in CAJAS} capacidad[c] * x[c,i,j,k] >= sum{kp in ALTURAS, c in CAJAS: kp > k} peso[c] * x[c,i,j,kp];
 
 end;

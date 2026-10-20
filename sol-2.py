@@ -3,6 +3,8 @@ import subprocess
 
 
 def get_ints(lista_strings: list):
+    for elemento in lista_strings:
+        elemento.strip()
     lista_strings = lista_strings.split()
     lista_procesada = []             # para no tener que modificar la lista de entrada 
     for string in lista_strings:
