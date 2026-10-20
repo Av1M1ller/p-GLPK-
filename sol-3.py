@@ -2,11 +2,10 @@ import argparse
 import subprocess
 import re
 
-def get_ints(lista_strings: list):
-    for elemento in lista_strings:
-        elemento.strip()
-    lista_strings = lista_strings.split()
-    lista_procesada = []             # para no tener que modificar la lista de entrada 
+def get_ints(linea_texto: str):
+    # Divide la cadena por espacios y convierte cada valor a entero
+    lista_strings = linea_texto.strip().split()
+    lista_procesada = []
     for string in lista_strings:
         lista_procesada.append(int(string))
     return lista_procesada
@@ -15,65 +14,57 @@ def get_ints(lista_strings: list):
 # ---------------- funciones para gestionar el ejemplo.in y crear el archivo .dat ----------------
 def leer_in(archivo_in):
     """
-    formato de ejemplo.in:
-    <longitud del lado del pallet, l> <número de niveles, h>
-    <p1 p2 ... pn >     prioridades
-    <ω1 ω2 ... ωn >     pesos
-    <γ1 γ2 ... γn >     capacidad
-    3 2
-    1 3 3 13 9 11 17 4 3
-    3 11 9 1 13 4 15 11 7
-    13 6 2 5 13 21 14 8 19
+    Lee el fichero .in para el modelo con espacios vacíos:
     """
-
     try:
-        # obtener los datos del .in y guardarlos en variables locales
-        with open(archivo_in, "r") as f:
-            n_cajas_niveles = get_ints(f.readline())  # [2,3]
-            prioridades = get_ints(f.readline()) # [1, 3, 349, 11, 7, 10, 3218]
-            pesos = get_ints(f.readline()) # [3, 4, 9, 11, 13, 4, 15, 2817,10]
-            capacidad = get_ints(f.readline()) #[0, 0, 0, 11, 3, 21, 14, 2, 19, 12, 14, 16]
+        # Obtener los datos del .in y guardarlos en variables locales
+        with open(archivo_in, "r", encoding="utf-8") as f:
+            n_cajas_niveles = get_ints(f.readline())  # [l, h]
+            prioridades = get_ints(f.readline())      # lista de prioridades
+            pesos = get_ints(f.readline())            # lista de pesos
+            capacidad = get_ints(f.readline())        # lista de capacidades
 
-            print(f"n_cajas_niveles: {n_cajas_niveles}, prioridades: {prioridades}, pesos: {pesos}, capacidad: {capacidad}") #depurar 
-            return  n_cajas_niveles, prioridades, pesos, capacidad
+            return n_cajas_niveles, prioridades, pesos, capacidad
 
-
-    except: 
-        raise TypeError("no se entró en el try de la función")
-
-    # devolver los valores de las variables si el número de prioridades coincide con el cuadrado del numero de cajas
-    # TODO: comprobaciones y raise error?
+    except Exception as e:
+        raise IOError(f"Error al leer el archivo de entrada '{archivo_in}': {e}")
 
 
-def crear_archivo_data(archivo_in, nombre_archivo_dat): #FIXME ruta dat o nombre del archivo (1)?
+def crear_archivo_data(archivo_in, nombre_archivo_dat):
+    """
+    Genera el archivo .dat en formato MathProg:
+    Escribe dimensiones (L, K), total de cajas reales (n), prioridades, pesos y capacidades.
+    """
     n_cajas_niveles, prioridades, pesos, capacidad = leer_in(archivo_in)
 
     n_cajas = n_cajas_niveles[0]
     n_niveles = n_cajas_niveles[1]
 
     with open(nombre_archivo_dat, "w", encoding="utf-8") as f:
-        f.write("data;\n\n") #FIXME: doble salto de línea?
+        f.write("data;\n\n")
+        # Parámetro L: lado de la base cuadrada del pallet
         f.write(f"param L := {n_cajas};\n\n")
+        # Parámetro K: número máximo de niveles de altura (H)
         f.write(f"param K := {n_niveles};\n\n")
-        f.write(f"param n := {len(prioridades)};\n\n") # calculo el valor de n con el número de prioridades, porque equivale al número de cajas
+        # Parámetro n: cantidad real de cajas existentes (n <= L * L * H)
+        f.write(f"param n := {len(prioridades)};\n\n")
+
+        # Parámetro prioridad: vector con la prioridad de cada caja
         f.write("param prioridad :=\n")
-        # Escribimos cada par: posición valor
         for idx, valor in enumerate(prioridades, start=1):
             f.write(f"{idx} {valor}\n")
-
         f.write(";\n\n")
 
+        # Parámetro peso: vector con el peso en gramos de cada caja
         f.write("param peso :=\n")
-        for idx, peso in enumerate(pesos, start =1):
+        for idx, peso in enumerate(pesos, start=1):
             f.write(f"{idx} {peso}\n")
-
         f.write(";\n\n")
 
+        # Parámetro capacidad: peso máximo que cada caja puede aguantar encima
         f.write("param capacidad :=\n")
-        for idx, capacidad in enumerate(capacidad, start =1):
-            f.write(f"{idx} {capacidad}\n")
-
-
+        for idx, cap in enumerate(capacidad, start=1):
+            f.write(f"{idx} {cap}\n")
         f.write(";\n\nend;\n")
 
     return nombre_archivo_dat
@@ -100,17 +91,20 @@ def crear_archivo_salida(nombre_archivo_glpk= "resultado.txt", nombre_archivo_sa
         f.write(f"{resultado[2][3]}, {resultado[2][5]}, {resultado[2][7]}") #indice_caja, i_caja, j_caja
 
 def main():
-    
-    #TODO: Estructurar mejor el código con diferentes funciones
-    parser = argparse.ArgumentParser() 
-    parser.add_argument("--nombre_fichero_in", type = str, required = True)
-    parser.add_argument("--nombre_fichero_dat", type = str, required = True)
+    # Argumentos de entrada por línea de comandos
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--nombre_fichero_in", type=str, required=True)
+    parser.add_argument("--nombre_fichero_dat", type=str, required=True)
     args = parser.parse_args()
 
-    path_local_glpk = r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" # "glpsol" #r"C:\Users\cheve\Downloads\2_HEURÍSTICA\TrabajoGLPK\winglpk-4.65\glpk-4.65\w64\glpsol.exe" # PATH Ordenador Ángel r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe"
+    # Rutas locales del solver GLPK y del modelo 3D con espacios vacíos
+    path_local_glpk = r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe"
     modelo = "part-3.mod"
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
 
+    # Invocación de glpsol para resolver el modelo MathProg
+    comando = [path_local_glpk, "--math", modelo, "--data", datos, "--output", "resultado.txt"]
+    subprocess.run(comando, check=True)
 
     comando = [path_local_glpk,"--math", modelo,"--data", datos,"--output", "resultado.txt"]
     subprocess.run(comando, check = True) #what is capture_output and text?
@@ -118,3 +112,5 @@ def main():
 
 main() #esto hace que se ejecute la función main y por tanto el código que está dentro de él, creo que es mejor así para que esté más estructurado el código
 
+if __name__ == "__main__":
+    main()
