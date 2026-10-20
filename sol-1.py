@@ -69,6 +69,7 @@ def main():
     comando = ["glpsol", "--math", modelo, "--data", datos, "--output", "resultado.txt"]
     subprocess.run(comando, check=True)
 
+    path_local_glpk = "glpsol"
     comando = [path_local_glpk,"--math", modelo,"--data", datos,"--output", "resultado.txt"]
     subprocess.run(comando, check = True) #what is capture_output and text?
     crear_archivo_salida(nombre_archivo_glpk="resultado.txt", nombre_archivo_salida="output-1.txt")
