@@ -1,4 +1,3 @@
-
 # -----------------------parametros generales -----------------------
 
 param L, integer, > 0;
@@ -21,24 +20,35 @@ param M := 1 + sum{c in CAJAS} prioridad[c];
 # ---------------------------------------------------------------------
 
 
-# --------------- VARIABLE DE DECISIÓN -Y- FUNCION OBJETIVO----------------------------------------------------------------
+# --------------- VARIABLES DE DECISIÓN -Y- FUNCION OBJETIVO----------------------------------------------------------------
 
 var x{CAJAS, FILAS, COLUMNAS, ALTURAS}, binary;
+var c{CAJAS} >= 0;
 
-minimize coste_medio: 1/n * sum{c in CAJAS, i in FILAS, j in COLUMNAS, k in ALTURAS} (i-1) * prioridad[c] * x[c,i,j,k];
+minimize coste_medio: (1/n) * sum{ca in CAJAS} c[ca];
 
 #---------------------------------------------------------------------------------------------------------
 
 #-----------------------------RESTRICCIONES ---------------------------------------------
 
-s.t. una_posicion_por_caja {c in CAJAS}: sum{i in FILAS, j in COLUMNAS, k in ALTURAS} x[c,i,j,k] = 1;
+s.t. una_posicion_por_caja {ca in CAJAS}: sum{i in FILAS, j in COLUMNAS, k in ALTURAS} x[ca,i,j,k] = 1;
 
-s.t. una_caja_por_posicion {i in FILAS, j in COLUMNAS, k in ALTURAS}: sum {c in CAJAS} x[c,i,j,k] <= 1;
+s.t. una_caja_por_posicion {i in FILAS, j in COLUMNAS, k in ALTURAS}: sum {ca in CAJAS} x[ca,i,j,k] <= 1;
+
+# Soporte físico (no cajas flotantes)
+s.t. gravedad {i in FILAS, j in COLUMNAS, k in ALTURAS: k > 1}:
+    sum{ca in CAJAS} x[ca, i, j, k] <= sum{cp in CAJAS} x[cp, i, j, k-1];
 
 s.t. orden_prioridad {i in FILAS, j in COLUMNAS, k in ALTURAS: i < L}:
-    sum{c in CAJAS} prioridad[c] * x[c,i+1,j,k] <= sum{c in CAJAS} prioridad[c] * x[c,i,j,k]; #TODO: MenorOigual o menor estrictor?
+    sum{ca in CAJAS} prioridad[ca] * x[ca,i+1,j,k] + M * (1 - sum{ca in CAJAS} x[ca,i+1,j,k]) <= 
+    sum{ca in CAJAS} prioridad[ca] * x[ca,i,j,k] + M * (1 - sum{ca in CAJAS} x[ca,i,j,k]);
 
 s.t. Resistencia {i in FILAS, j in COLUMNAS, k in ALTURAS: k < K}:
-    sum{c in CAJAS} capacidad[c] * x[c,i,j,k] >= sum{kp in ALTURAS, c in CAJAS: kp > k} peso[c] * x[c,i,j,kp];
+    sum{ca in CAJAS} capacidad[ca] * x[ca,i,j,k] >= sum{kp in ALTURAS, ca in CAJAS: kp > k} peso[ca] * x[ca,i,j,kp];
+
+# Calculo exacto del coste sin sobreestimar huecos
+s.t. calculo_coste {ca in CAJAS, i in FILAS, j in COLUMNAS, k in ALTURAS}:
+    c[ca] >= prioridad[ca] * (sum{ip in FILAS, cp in CAJAS: ip < i} x[cp, ip, j, k]) 
+             - (prioridad[ca] * (i - 1)) * (1 - x[ca, i, j, k]);
 
 end;

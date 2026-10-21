@@ -1,4 +1,3 @@
-
 # ----------------------- PARÁMETROS GENERALES -----------------------
 
 param L, integer, > 0;
@@ -26,17 +25,29 @@ param M := 1 + sum{k in CAJAS} prioridad[k];
 # --------------------------------------------------------------------
 
 var x{CAJAS, FILAS, COLUMNAS, ALTURAS, PALLETS}, binary;
-
 var y{PALLETS}, binary;
+var c{CAJAS} >= 0;
 
-minimize coste_total: sum{q in PALLETS} (P * y[q] + sum{k in CAJAS, i in FILAS, j in COLUMNAS, a in ALTURAS} (i - 1) * prioridad[k] * x[k,i,j,a,q]);
+minimize coste_total: sum{q in PALLETS} P * y[q] + (1/n) * sum{k in CAJAS} c[k];
 
-s.t. una_posicion_por_caja{k in CAJAS}: sum{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS} x[k,i,j,a,q] = 1;
+s.t. una_posicion_por_caja{k in CAJAS}: 
+    sum{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS} x[k,i,j,a,q] = 1;
 
-s.t. una_caja_por_posicion{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS}: sum{k in CAJAS} x[k,i,j,a,q] <= y[q];
+s.t. una_caja_por_posicion{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS}: 
+    sum{k in CAJAS} x[k,i,j,a,q] <= y[q];
 
-s.t. orden_prioridad{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS: i < L}: sum{k in CAJAS} prioridad[k] * x[k,i+1,j,a,q] <= sum{k in CAJAS} prioridad[k] * x[k,i,j,a,q];
+s.t. orden_prioridad{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS: i < L}: 
+    sum{k in CAJAS} prioridad[k] * x[k,i+1,j,a,q] + M * (1 - sum{k in CAJAS} x[k,i+1,j,a,q]) <= 
+    sum{k in CAJAS} prioridad[k] * x[k,i,j,a,q] + M * (1 - sum{k in CAJAS} x[k,i,j,a,q]);
 
-s.t. Resistencia{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS: a < H}: sum{k in CAJAS} capacidad[k] * x[k,i,j,a,q]>=sum{ap in ALTURAS, k in CAJAS: ap > a}peso[k] * x[k,i,j,ap,q];
+s.t. Resistencia{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS: a < H}: 
+    sum{k in CAJAS} capacidad[k] * x[k,i,j,a,q] >= sum{ap in ALTURAS, k in CAJAS: ap > a} peso[k] * x[k,i,j,ap,q];
 
-s.t. sin_huecos{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS: a < H}: sum{k in CAJAS} x[k,i,j,a+1,q]<= sum{k in CAJAS} x[k,i,j,a,q];
+s.t. sin_huecos{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS: a < H}: 
+    sum{k in CAJAS} x[k,i,j,a+1,q] <= sum{k in CAJAS} x[k,i,j,a,q];
+
+s.t. calculo_coste{k in CAJAS, i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS}:
+    c[k] >= prioridad[k] * (sum{ip in FILAS, kp in CAJAS: ip < i} x[kp,ip,j,a,q]) 
+            - (prioridad[k] * (i - 1)) * (1 - x[k,i,j,a,q]);
+
+end;
