@@ -69,26 +69,39 @@ def crear_archivo_data(archivo_in, nombre_archivo_dat):
 
     return nombre_archivo_dat
 
-def crear_archivo_salida(nombre_archivo_glpk= "resultado.txt", nombre_archivo_salida):
-    """
-         3 x[1,1,3]     *              0             0             1 
-    """
+def crear_archivo_salida(nombre_fichero_in, nombre_output_glpk= "resultado.txt", nombre_archivo_salida = "salida.txt"):
     resultado = []
-    patron = r"\s*\d\s+x\[\d+,\d+,\d+\]\s+\*\s+0\s+0\s+1"
-    with open(nombre_archivo_glpk, "r") as f:
+    # patron = r"\s*\d\s+x\[\d+,\d+,\d+\]\s+\*\s+1\s+0\s+1"
+    patron = r"\s*\d+\s+x\[\d+,\d+,\d+,\d+\]\s+\*\s+1\s+0\s+1"
+    with open(nombre_output_glpk, "r") as f:
         for linea in f:
             coincidencia = re.search(patron, linea)
             if coincidencia:
-                linea = linea.split().strip()
-                resultado.append([linea])
+                linea = linea.split()#.strip()
+                # print(f"linea[1]!!!!!!!!!!!!!!!!!!!!!!!!!!!!1: {linea[1]}")
+                # linea[1] = linea[1].split()
+                resultado.append(linea)
+
+    filas = [0,0,0,0,0,0,0,0,0]
+    output_xs = []
+    _ , prioridades, pesos, capacidad  = leer_in(nombre_fichero_in) #TODO: Añadir pesos y capacidad?
+
+    for element in resultado:
+        output_xs.append(element[1])
+
+    for element in output_xs: # x[1,2,1,3] x[k,i,j,a] 
+        for i in range(1,4): 
+            print(f"element[4]:  {element[4]}, i: {i}")
+            if int(element[4]) == i: # # x[1,2,2] x[k,i,j] , element[4] = 2, que es = fila
+                posicion = (i - 1) * 3 + int(element[6]) - 1  # x[1,2,2] x[k,i,j] , element[6] = 2, que es = columna. Se multiplica x3 a razón de i-1 porque representamos una matriz en un vector
+                filas[posicion] = [prioridades[int(element[2])-1], pesos[int(element[2])-1], capacidad[int(element[2])-1]]
 
     with open(nombre_archivo_salida, "w") as f:
-        f.write(f"fila_1: ")
-        f.write(f"{resultado[0][3]}, {resultado[0][5]}, {resultado[0][7]}") #indice_caja, i_caja, j_caja
-        f.write(f"fila_2: ")
-        f.write(f"{resultado[1][3]}, {resultado[1][5]}, {resultado[1][7]}") #indice_caja, i_caja, j_caja
-        f.write(f"fila_3: ")
-        f.write(f"{resultado[2][3]}, {resultado[2][5]}, {resultado[2][7]}") #indice_caja, i_caja, j_caja
+        for i in range(0,3):
+            f.write(f"FILA {i+1}: ")
+            f.write(f"{filas[0+3*i:3+3*i]}\n")
+    # x[1,2,1,3]
+
 
 def main():
     # Argumentos de entrada por línea de comandos
@@ -108,9 +121,6 @@ def main():
 
     comando = [path_local_glpk,"--math", modelo,"--data", datos,"--output", "resultado.txt"]
     subprocess.run(comando, check = True) #what is capture_output and text?
-    crear_archivo_salida(nombre_archivo_glpk="resultado.txt", nombre_archivo_salida="output-3.txt")
+    crear_archivo_salida(args.nombre_fichero_in, nombre_archivo_glpk="resultado.txt", nombre_archivo_salida="output-3.txt")
 
 main() #esto hace que se ejecute la función main y por tanto el código que está dentro de él, creo que es mejor así para que esté más estructurado el código
-
-if __name__ == "__main__":
-    main()

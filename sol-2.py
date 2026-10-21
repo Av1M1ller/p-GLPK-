@@ -34,7 +34,7 @@ def crear_archivo_data(archivo_in, nombre_archivo_dat):
         f.write("data;\n\n")
         # Dimensiones del pallet
         f.write(f"param L := {lado};\n")
-        f.write(f"param H := {niveles};\n\n")
+        f.write(f"param K := {niveles};\n\n")
 
         # Prioridad de cada caja
         f.write("param prioridad :=\n")
@@ -56,26 +56,47 @@ def crear_archivo_data(archivo_in, nombre_archivo_dat):
 
     return nombre_archivo_dat
 
-def crear_archivo_salida(nombre_archivo_glpk= "resultado.txt", nombre_archivo_salida):
-    """
-         3 x[1,1,3]     *              0             0             1 
-    """
+def crear_archivo_salida(dimensiones, prioridades, expresion_regular, pesos = None, capacidad = None, nombre_fichero_in = "ejemplo.txt", nombre_output_glpk= "resultado.txt", nombre_archivo_salida = "salida.txt"):
     resultado = []
-    patron = r"\s*\d\s+x\[\d+,\d+,\d+\]\s+\*\s+0\s+0\s+1"
-    with open(nombre_archivo_glpk, "r") as f:
+    n_filas = dimensiones
+    # patron = r"\s*\d+\s+x\[\d+,\d+,\d+,\d+\]\s+\*\s+1\s+0\s+1"
+
+    patron = expresion_regular
+    with open(nombre_output_glpk, "r") as f: # sirve para cualquier caso
         for linea in f:
             coincidencia = re.search(patron, linea)
             if coincidencia:
-                linea = linea.split().strip()
-                resultado.append([linea])
+                linea = linea.split()
+                resultado.append(linea)
 
-    with open(nombre_archivo_salida, "w") as f:
-        f.write(f"fila_1: ")
-        f.write(f"{resultado[0][3]}, {resultado[0][5]}, {resultado[0][7]}") #indice_caja, i_caja, j_caja
-        f.write(f"fila_2: ")
-        f.write(f"{resultado[1][3]}, {resultado[1][5]}, {resultado[1][7]}") #indice_caja, i_caja, j_caja
-        f.write(f"fila_3: ")
-        f.write(f"{resultado[2][3]}, {resultado[2][5]}, {resultado[2][7]}") #indice_caja, i_caja, j_caja
+    print(resultado)
+
+    filas = []
+    filas.append([]*n_filas)
+    
+
+        
+
+    
+    # filas = [0,0,0,0,0,0,0,0,0]
+    # output_xs = []
+    # # dimensiones , prioridades, pesos, capacidad  = leer_in(nombre_fichero_in) #TODO: Añadir pesos y capacidad?
+
+    # for element in resultado:
+    #     output_xs.append(element[1])
+
+    # for element in output_xs: # x[1,2,1,3] x[k,i,j,a] 
+    #     for i in range(1,4): 
+    #         print(f"element[4]:  {element[4]}, i: {i}")
+    #         if int(element[4]) == i: # # x[1,2,2] x[k,i,j] , element[4] = 2, que es = fila
+    #             posicion = (i - 1) * 3 + int(element[6]) - 1  # x[1,2,2] x[k,i,j] , element[6] = 2, que es = columna. Se multiplica x3 a razón de i-1 porque representamos una matriz en un vector
+    #             filas[posicion] = [prioridades[int(element[2])-1], pesos[int(element[2])-1], capacidad[int(element[2])-1]]
+
+    # with open(nombre_archivo_salida, "w") as f:
+    #     for i in range(0,3):
+    #         f.write(f"FILA {i+1}: ")
+    #         f.write(f"{filas[0+3*i:3+3*i]}\n")
+    # # x[1,2,1,3]
 
 def main():
     # Argumentos por línea de comandos
@@ -87,9 +108,15 @@ def main():
     # Genera el fichero de datos intermedio
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
     modelo = "part-2.mod"
-
-    comando = ["glpsol","--math", modelo,"--data", datos,"--output", "resultado.txt"]
+    path = r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe"
+    comando = [path,"--math", modelo,"--data", datos,"--output", "resultado.txt"]
     subprocess.run(comando, check = True) #what is capture_output and text?
-    crear_archivo_salida(nombre_archivo_glpk="resultado.txt", nombre_archivo_salida="output-2.txt")
+
+    dimensiones, prioridades, pesos, capacidad = leer_in(args.nombre_fichero_in)
+    expresion_regular = r"\s*\d+\s+x\[\d+,\d+,\d+,\d+\]\s+\*\s+1\s+0\s+1"
+
+    crear_archivo_salida(dimensiones = dimensiones, prioridades=prioridades, expresion_regular = expresion_regular, pesos=pesos, capacidad = capacidad, nombre_fichero_in = args.nombre_fichero_in, nombre_output_glpk="resultado.txt", nombre_archivo_salida="output-2.txt")
 
 main() #esto hace que se ejecute la función main y por tanto el código que está dentro de él, creo que es mejor así para que esté más estructurado el código
+
+# prioridades, expresion_regular, n_pallets = 1, n_alturas= 1,pesos = None, capacidad = None, nombre_fichero_in = "ejemplo.txt", nombre_output_glpk= "resultado.txt", nombre_archivo_salida = "salida.txt"
