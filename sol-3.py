@@ -112,6 +112,7 @@ def crear_archivo_salida(nombre_fichero_in, nombre_output_glpk= "resultado.txt",
 
 
 def main():
+    print("LINEA UNO DEL MAIN")
     #Argumentos de entrada por línea de comandos
     parser = argparse.ArgumentParser()
     parser.add_argument("--nombre_fichero_in", type=str, required=True)
@@ -119,7 +120,7 @@ def main():
     args = parser.parse_args()
 
     #Rutas locales del solver GLPK y del modelo 3D con espacios vacíos
-    path_local_glpk =  "glpsol" #r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" 
+    path_local_glpk = r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" #"glpsol"
     modelo = "part-3.mod"
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
 

@@ -81,6 +81,7 @@ def crear_archivo_salida(nombre_fichero_in, nombre_archivo_glpk="resultado.txt",
     """
          3 x[1,1,3,1,1]     *              0             0             1 
     """
+    print("SE HA ENTRADO CORRECTAMENTE A LA FUNCION CREAR ARCHIVO SALIDA")
     n_cajas_niveles_costeMontaje, prioridades, pesos, capacidad = leer_in(nombre_fichero_in) 
     L = n_cajas_niveles_costeMontaje[0]
     H = n_cajas_niveles_costeMontaje[1]
@@ -88,14 +89,28 @@ def crear_archivo_salida(nombre_fichero_in, nombre_archivo_glpk="resultado.txt",
     
     #Matriz inicializada con huecos vacíos ("-")
     matriz = [[[[["-"] for _ in range(L)] for _ in range(L)] for _ in range(H)] for _ in range(m)]
+    #matriz = [[[["-" for _ in range(L)] for _ in range(L)] for _ in range(H)] for _ in range(m)]
     pallets_usados = set()
     
     #Expresión regular para capturar x[caja, fila, columna, altura, pallet]
-    patron = r"x\[(\d+),(\d+),(\d+),(\d+),(\d+)\]\s+\*\s+1"
+    # patron = r"x\[(\d+),(\d+),(\d+),(\d+),(\d+)\]\s+\*\s+1"
     
+    #patron = r"x\[(\d+),(\d+),(\d+),(\d+),(\d+)\]\s+\*\s+1"
+    #patron = r"\s* \d+ x\[(\d+),(\d+),(\d+),(\d+),(\d+)\]\s* \* \s+1\s+0\s+1"
+    
+    #patron = r"^\s*\d+\s+x\[([\d,]+)\]\s*\*\s+1\s+0\s+1" 
+    print("HOLAAAAAAAAAAAAAAA1")
+    patron = r"^\s*\d+\s+x\[(\d+),(\d+),(\d+),(\d+),(\d+)\]\s*\*\s+1\s+0\s+1" 
+
+    print("HOLAAAAAAAAAAAAAAA2")
+
     with open(nombre_archivo_glpk, "r") as f:
+        print(f"SE HA ABIERTO EL ARCHIVO CORRECTAMENTE")
         for linea in f:
+            print("EMPIEZA AQUIIII")
             coincidencia = re.search(patron, linea)
+            print(f"COINCIDENCIA: {coincidencia}")
+            print()
             if coincidencia:
                 k = int(coincidencia.group(1))
                 i = int(coincidencia.group(2))
@@ -127,6 +142,7 @@ def crear_archivo_salida(nombre_fichero_in, nombre_archivo_glpk="resultado.txt",
 
 
 def main():
+    print("LINEA UNO DEL MAIN")
     #Argumentos de entrada por consola
     parser = argparse.ArgumentParser() 
     parser.add_argument("--nombre_fichero_in", type=str, required=True)
@@ -134,21 +150,23 @@ def main():
     args = parser.parse_args()
 
     # Rutas locales del solver GLPK y del modelo multipallet
-    path_local_glpk = "glpsol"
-    modelo = "part-4.mod"
+    path_local_glpk = r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" #"glpsol"
+    modelo = "part-4-marco-compatible.mod"
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
 
     # Invocación de glpsol (ahora con 10s)
-    comando = [path_local_glpk, "--math", modelo, "--data", datos, "--tmlim", "10", "--name", "PARTE_4", "--output", "resultado.txt"]
+    comando = [path_local_glpk, "--math", modelo, "--data", datos, "--tmlim", "50", "--name", "PARTE_4", "--output", "resultado.txt"]
 
-    print("Ejecutando, 10S...")
+    print("Ejecutando, 10 S...")
 
-    # Capture_output=True oculta la salida de GLPK para que no ensucie.
+    # Capture_output=True oculta la salida de GLPK para que no ensucie.ç
+    print("ANTES DE LLAMAR A subprocess")
     subprocess.run(comando, check=True, capture_output=True, text=True) 
-    
+
+    print("ANTES LLAMAR A LA FUNCIÓN DE CREAR ARCHIVO")
     crear_archivo_salida(args.nombre_fichero_in, nombre_archivo_glpk="resultado.txt", nombre_archivo_salida="output-4.txt")
+    print("DESPUES DE LLAMAS A LA FUNCION DE CREAR ARCHIVO")
 
-
-if __name__ == "__main__":
     # esto hace que se ejecute la función main y por tanto el código que está dentro de él, creo que es mejor así para que esté más estructurado el código
-    main()
+
+main()

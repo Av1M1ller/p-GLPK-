@@ -2,9 +2,13 @@ data;
 
 param L := 2;
 
-param K := 2;
+param H := 2;
 
 param P := 3;
+
+param n := 6;
+
+param m := 6;
 
 param prioridad :=
 1 4
@@ -31,8 +35,6 @@ param capacidad :=
 4 4
 5 3
 6 7
-;
-
 ;
 
 end;
