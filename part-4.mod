@@ -43,10 +43,6 @@ s.t. def_ocupacion{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS}:
 s.t. uso_pallet{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS}:
     u[i,j,a,q] <= y[q];
 
-# Ruptura de simetría: usar pallets en orden correlativo (1, 2, ...)
-s.t. orden_pallets{q in PALLETS: q < m}:
-    y[q+1] <= y[q];
-
 # Orden de prioridad (solo si la celda delantera está ocupada)
 s.t. orden_prioridad{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS: i < L}: 
     sum{k in CAJAS} prioridad[k] * x[k,i+1,j,a,q] <= 
