@@ -2,29 +2,35 @@ import argparse
 import subprocess
 import re
 
+# ---------------- Funciones para gestionar el .in y crear el archivo .dat ----------------
 def leer_in(archivo_in):
-    """Lee el fichero .in y valida que el total de cajas sea L^2."""
+    """
+    Lee el fichero .in para el modelo 2D (Parte 1).
+    Extrae la dimensión L (lado del pallet) y el vector de prioridades.
+    Valida que el total de cajas coincida exactamente con L^2.
+    """
     with open(archivo_in, "r") as f:
-        # Dimensión L de la base del pallet
         n_lado_cajas = int(f.readline().strip())
-        # Lista con las prioridades de cada caja
         prioridades = [int(x) for x in f.readline().split()]
 
-    # Comprueba que el número de cajas coincida con el tamaño del pallet 2D
+    # Comprobación
     if len(prioridades) != n_lado_cajas ** 2:
         raise ValueError("El número de prioridades no coincide con L^2")
         
     return n_lado_cajas, prioridades
 
 def crear_archivo_data(archivo_in, nombre_archivo_dat):
-    """Genera el fichero .dat con la sintaxis de MathProg/GLPK."""
+    """
+    Genera el fichero .dat dinámicamente con la sintaxis exacta de MathProg (GLPK).
+    """
     n_lado_cajas, prioridades = leer_in(archivo_in)
     
     with open(nombre_archivo_dat, "w", encoding="utf-8") as f:
         f.write("data;\n\n")
-        # Parámetro del tamaño de la base (L)
+        # Parámetro l: longitud del lado del pallet
         f.write(f"param l := {n_lado_cajas};\n\n")
-        # Parámetro con la prioridad p[k] de cada caja k
+        
+        # Volcado del vector de prioridades
         f.write("param p :=\n")
         for idx, valor in enumerate(prioridades, start=1):
             f.write(f"{idx} {valor}\n")
@@ -32,52 +38,75 @@ def crear_archivo_data(archivo_in, nombre_archivo_dat):
 
     return nombre_archivo_dat
 
-def crear_archivo_salida(nombre_fichero_in, nombre_output_glpk= "resultado.txt", nombre_archivo_salida = "salida.txt"):
-    resultado = []
-    patron = r"\s*\d\s+x\[\d+,\d+,\d+\]\s+\*\s+1\s+0\s+1"
+def crear_archivo_salida(nombre_fichero_in, nombre_output_glpk="resultado.txt", nombre_archivo_salida="output-1.txt"):
+    """
+    Parsea el output bruto de GLPK, filtra las variables x activas con regex,
+    y genera un mapa visual para entender la distribución fácilmente.
+    """
+    L, prioridades = leer_in(nombre_fichero_in)
+    
+    # Matriz 2D inicializada con ceros para la parte 1
+    matriz = [[0 for _ in range(L)] for _ in range(L)]
+    
+    patron = r"x\[(\d+),(\d+),(\d+)\]\s+\*\s+1"
+    
     with open(nombre_output_glpk, "r") as f:
         for linea in f:
             coincidencia = re.search(patron, linea)
             if coincidencia:
-                linea = linea.split()#.strip()
-                # print(f"linea[1]!!!!!!!!!!!!!!!!!!!!!!!!!!!!1: {linea[1]}")
-                # linea[1] = linea[1].split()
-                resultado.append(linea)
+                k = int(coincidencia.group(1))
+                i = int(coincidencia.group(2))
+                j = int(coincidencia.group(3))
+                
+                # Asignamos la prioridad de la caja a su posición en la matriz
+                matriz[i-1][j-1] = prioridades[k-1]
 
+    # Construimos el resultado visual limpio
+    resultado_visual = f"\n--- DISTRIBUCIÓN DEL PALLET ({L}x{L}) ---\n"
+    for i in range(L):
+        if i == 0:
+            etiqueta = f"FILA {i+1} (Fondo) :"
+        elif i == L - 1:
+            etiqueta = f"FILA {i+1} (Acceso):"
+        else:
+            etiqueta = f"FILA {i+1}          :"
+            
+        resultado_visual += f"{etiqueta} {matriz[i]}\n"
     
-    filas = [0,0,0,0,0,0,0,0,0]
-    output_xs = []
-    _ , prioridades = leer_in(nombre_fichero_in)
-
-    for element in resultado:
-        output_xs.append(element[1])
-
-    for element in output_xs: # x[1,2,2] x[k,i,j] 
-        for i in range(1,4): 
-            print(f"element[4]:  {element[4]}, i: {i}")
-            if int(element[4]) == i: # # x[1,2,2] x[k,i,j] , element[4] = 2, que es = fila
-                posicion = (i - 1) * 3 + int(element[6]) - 1  # x[1,2,2] x[k,i,j] , element[6] = 2, que es = columna. Se multiplica x3 a razón de i-1 porque representamos una matriz en un vector
-                filas[posicion] = prioridades[int(element[2])-1]
-
-    with open(nombre_archivo_salida, "w") as f:
-        for i in range(0,3):
-            f.write(f"FILA {i+1}: ")
-            f.write(f"{filas[0+3*i:3+3*i]}\n")
+    #Lo guardamos en el txt y lo imprimimos en la terminal
+    with open(nombre_archivo_salida, "w", encoding="utf-8") as f:
+        f.write(resultado_visual)
+        
+    print(resultado_visual)
 
 def main():
-    # Parámetros de entrada por línea de comandos
+    #Captura de los argumentos por línea de comandos
     parser = argparse.ArgumentParser() 
     parser.add_argument("--nombre_fichero_in", type=str, required=True, help="Fichero .in de entrada")
     parser.add_argument("--nombre_fichero_dat", type=str, required=True, help="Fichero .dat a generar")
     args = parser.parse_args()
 
-    # Genera el fichero de datos para el solver
+    # 1. Generamos el archivo .dat a partir de los datos originales
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
     modelo = "part-1.mod"
-    path_local_glpk = "glpsol" #r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe"
-    # Comando para ejecutar GLPK con el modelo, los datos y la salida
-    comando = [path_local_glpk,"--math", modelo,"--data", datos,"--output", "resultado.txt"]
-    subprocess.run(comando, check = True) #what is capture_output and text?
+    
+    path_local_glpk = "glpsol" 
+    
+    #Configurar la llamada a GLPK
+    comando = [path_local_glpk, "--math", modelo, "--data", datos, "--name", "PARTE_1", "--output", "resultado.txt"]
+    
+    print("Resolviendo modelo, por favor espera...")
+    try:
+        # Se añade capture_output=True para mantener la consola limpia
+        subprocess.run(comando, check=True, capture_output=True, text=True)
+        print("¡Optimización completada con éxito!")
+    except subprocess.CalledProcessError as e:
+        print("\nError al ejecutar GLPK:\n", e.stderr)
+        return
+    
+    #Leer el resultado bruto y generar el mapa visual
     crear_archivo_salida(args.nombre_fichero_in, nombre_output_glpk="resultado.txt", nombre_archivo_salida="output-1.txt")
 
-main() #esto hace que se ejecute la función main y por tanto el código que está dentro de él, creo que es mejor así para que esté más estructurado el código
+if __name__ == "__main__":
+    # Punto de inicio
+    main()

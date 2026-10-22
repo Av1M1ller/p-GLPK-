@@ -47,9 +47,25 @@ s.t. uso_pallet{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS}:
 s.t. orden_pallets{q in PALLETS: q < m}:
     y[q+1] <= y[q];
 
-# Orden de prioridad con M ajustada
+# Orden de prioridad (solo si la celda delantera está ocupada)
 s.t. orden_prioridad{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS: i < L}: 
-    sum{k in CAJAS} prioridad[k] * x[k,i+1,j,a,q] + M * (1 - u[i+1,j,a,q]) <= 
-    sum{k in CAJAS} prioridad[k] * x[k,i,j,a,q]   + M * (1 - u[i,j,a,q]);
+    sum{k in CAJAS} prioridad[k] * x[k,i+1,j,a,q] <= 
+    sum{k in CAJAS} prioridad[k] * x[k,i,j,a,q] + M * (1 - u[i+1,j,a,q]);
 
 # Resistencia vertical
+s.t. resistencia{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS: a < H}:
+    sum{k in CAJAS} capacidad[k] * x[k,i,j,a,q] >= sum{ap in ALTURAS, k in CAJAS: ap > a} peso[k] * x[k,i,j,ap,q];
+
+# Gravedad vertical (no flotar)
+s.t. gravedad_vertical{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS: a < H}:
+    u[i,j,a+1,q] <= u[i,j,a,q];
+
+# Gravedad horizontal (empujar al fondo para evitar huecos)
+s.t. gravedad_horizontal{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS: i < L}:
+    u[i+1,j,a,q] <= u[i,j,a,q];
+
+# Cálculo exacto del coste de extracción
+s.t. calculo_coste{k in CAJAS, i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS}:
+    c[k] >= prioridad[k] * (sum{ip in FILAS: ip > i} u[ip,j,a,q]) - (prioridad[k] * L) * (1 - x[k,i,j,a,q]);
+
+end;

@@ -16,7 +16,6 @@ def get_ints(linea_texto: str):
 def leer_in(archivo_in):
     """
     Lee el fichero .in del problema con múltiples pallets:
-
     """
     try:
         with open(archivo_in, "r", encoding="utf-8") as f:
@@ -41,31 +40,35 @@ def crear_archivo_data(archivo_in, nombre_archivo_dat):
     n_cajas = n_cajas_niveles_costeMontaje[0]
     n_niveles = n_cajas_niveles_costeMontaje[1]
     coste_montaje = n_cajas_niveles_costeMontaje[2]
+    
+    m = len(prioridades) # El número máximo de pallets es el total de cajas (por si va una por pallet)
 
     with open(nombre_archivo_dat, "w", encoding="utf-8") as f:
         f.write("data;\n\n")
         # Parámetro L: lado de la base del pallet
         f.write(f"param L := {n_cajas};\n\n")
         # Parámetro K: niveles máximos de altura (H)
-        f.write(f"param K := {n_niveles};\n\n")
+        f.write(f"param H := {n_niveles};\n\n")
         # Parámetro P: coste fijo de activación/montaje de un pallet
         f.write(f"param P := {coste_montaje};\n\n")
         # Parámetro n: número total de cajas a distribuir
         f.write(f"param n := {len(prioridades)};\n\n")
+        # Parámetro m: número de pallets utilizables
+        f.write(f"param m := {m};\n\n")
 
-        # Parámetro prioridad: vector con la prioridad de cada caja
+        # Parámetro prioridad: vector con las prioridades
         f.write("param prioridad :=\n")
         for idx, valor in enumerate(prioridades, start=1):
             f.write(f"{idx} {valor}\n")
         f.write(";\n\n")
 
-        # Parámetro peso: vector con el peso en gramos de cada caja
+        # Parámetro peso: vector con el peso en gramos
         f.write("param peso :=\n")
         for idx, peso in enumerate(pesos, start=1):
             f.write(f"{idx} {peso}\n")
         f.write(";\n\n")
 
-        # Parámetro capacidad: peso máximo soportado por cada caja
+        # Parámetro capacidad
         f.write("param capacidad :=\n")
         for idx, cap in enumerate(capacidad, start=1):
             f.write(f"{idx} {cap}\n")
@@ -74,50 +77,78 @@ def crear_archivo_data(archivo_in, nombre_archivo_dat):
     return nombre_archivo_dat
 
 
-def crear_archivo_salida(nombre_archivo_glpk= "resultado.txt", nombre_archivo_salida):
+def crear_archivo_salida(nombre_fichero_in, nombre_archivo_glpk="resultado.txt", nombre_archivo_salida="output-4.txt"):
     """
-         3 x[1,1,3]     *              0             0             1 
+         3 x[1,1,3,1,1]     *              0             0             1 
     """
-    resultado = []
-    patron = r"\s*\d\s+x\[\d+,\d+,\d+\]\s+\*\s+0\s+0\s+1"
+    n_cajas_niveles_costeMontaje, prioridades, pesos, capacidad = leer_in(nombre_fichero_in) 
+    L = n_cajas_niveles_costeMontaje[0]
+    H = n_cajas_niveles_costeMontaje[1]
+    m = len(prioridades)
+    
+    #Matriz inicializada con huecos vacíos ("-")
+    matriz = [[[[["-"] for _ in range(L)] for _ in range(L)] for _ in range(H)] for _ in range(m)]
+    pallets_usados = set()
+    
+    #Expresión regular para capturar x[caja, fila, columna, altura, pallet]
+    patron = r"x\[(\d+),(\d+),(\d+),(\d+),(\d+)\]\s+\*\s+1"
+    
     with open(nombre_archivo_glpk, "r") as f:
         for linea in f:
             coincidencia = re.search(patron, linea)
             if coincidencia:
-                linea = linea.split().strip()
-                resultado.append([linea])
+                k = int(coincidencia.group(1))
+                i = int(coincidencia.group(2))
+                j = int(coincidencia.group(3))
+                a = int(coincidencia.group(4))
+                q = int(coincidencia.group(5))
+                
+                matriz[q-1][a-1][i-1][j-1] = f"[P:{prioridades[k-1]}, W:{pesos[k-1]}, C:{capacidad[k-1]}]"
+                pallets_usados.add(q-1)
 
-
-    with open(nombre_archivo_salida, "w") as f:
-        f.write(f"fila_1: ")
-        f.write(f"{resultado[0][3]}, {resultado[0][5]}, {resultado[0][7]}") #indice_caja, i_caja, j_caja
-        f.write(f"fila_2: ")
-        f.write(f"{resultado[1][3]}, {resultado[1][5]}, {resultado[1][7]}") #indice_caja, i_caja, j_caja
-        f.write(f"fila_3: ")
-        f.write(f"{resultado[2][3]}, {resultado[2][5]}, {resultado[2][7]}") #indice_caja, i_caja, j_caja
+    #Generamos el texto visual 
+    resultado_visual = f"\n--- DISTRIBUCIÓN MULTIPALLET ({L}x{L}x{H}) ---\n"
+    
+    if not pallets_usados:
+        resultado_visual += "No se ha encontrado ninguna solución válida.\n"
+    else:
+        for q in sorted(list(pallets_usados)):
+            resultado_visual += f"\n================== PALLET {q+1} ==================\n"
+            for a in range(H):
+                resultado_visual += f"\n=== PISO {a+1} {'(Suelo)' if a == 0 else '(Superior)'} ===\n"
+                for i in range(L):
+                    etiqueta = f"FILA {i+1} (Fondo) :" if i == 0 else (f"FILA {i+1} (Acceso):" if i == L - 1 else f"FILA {i+1}          :")
+                    resultado_visual += f"{etiqueta} {matriz[q][a][i]}\n"
+    
+    with open(nombre_archivo_salida, "w", encoding="utf-8") as f:
+        f.write(resultado_visual)
+        
+    print(resultado_visual)
 
 
 def main():
-    # Argumentos de entrada por consola
+    #Argumentos de entrada por consola
     parser = argparse.ArgumentParser() 
     parser.add_argument("--nombre_fichero_in", type=str, required=True)
     parser.add_argument("--nombre_fichero_dat", type=str, required=True)
     args = parser.parse_args()
 
     # Rutas locales del solver GLPK y del modelo multipallet
-    path_local_glpk = r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe"
+    path_local_glpk = "glpsol"
     modelo = "part-4.mod"
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
 
-    # Invocación de glpsol para optimizar la distribución en múltiples pallets
-    comando = [path_local_glpk, "--math", modelo, "--data", datos, "--output", "resultado.txt"]
-    subprocess.run(comando, check=True)
+    # Invocación de glpsol (ahora con 10s)
+    comando = [path_local_glpk, "--math", modelo, "--data", datos, "--tmlim", "10", "--name", "PARTE_4", "--output", "resultado.txt"]
 
-    comando = [path_local_glpk,"--math", modelo,"--data", datos,"--output", "resultado.txt"]
-    subprocess.run(comando, check = True) #what is capture_output and text?
-    (nombre_archivo_glpk="resultado.txt", nombre_archivo_salida="output-4.txt")
+    print("Ejecutando, 10S...")
 
-main() #esto hace que se ejecute la función main y por tanto el código que está dentro de él, creo que es mejor así para que esté más estructurado el código
+    # Capture_output=True oculta la salida de GLPK para que no ensucie.
+    subprocess.run(comando, check=True, capture_output=True, text=True) 
+    
+    crear_archivo_salida(args.nombre_fichero_in, nombre_archivo_glpk="resultado.txt", nombre_archivo_salida="output-4.txt")
+
 
 if __name__ == "__main__":
+    # esto hace que se ejecute la función main y por tanto el código que está dentro de él, creo que es mejor así para que esté más estructurado el código
     main()
