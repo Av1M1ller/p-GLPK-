@@ -1,124 +1,65 @@
-# ----------------------- PARÁMETROS GENERALES -----------------------
+/* PARTE 3 - Modelo compatible con sol-3.py */
 
-param L, integer, > 0;
-param K, integer, > 0;
-param n, integer, > 0, <= L * L * K;
+/* Parámetros: estos nombres coinciden con los que escribe sol-3.py */
+param L, integer, > 0;                 # lado de la base del pallet
+param K, integer, > 0;                 # número de niveles
+param n, integer, > 0, <= L * L * K;   # número real de cajas
 
-# ---------------------------------------------------------------------
+/* Conjuntos */
+set FILA    := 1..L;
+set COLUMNA := 1..L;
+set NIVEL   := 1..K;
+set CAJA    := 1..n;
 
-set FILAS := 1..L;
-set COLUMNAS := 1..L;
-set ALTURAS := 1..K;
-set CAJAS  := 1..n;
+/* Datos: nombres coincidentes con sol-3.py */
+param prioridad{CAJA};
+param peso{CAJA};
+param capacidad{CAJA};
 
-# -------------- PARÁMETROS ASOCIADOS A "LA CAJA" ---------------------
+/* sol-3.py no proporciona un vector independiente de costes.
+   Se conserva el parámetro de costes del modelo y se toma prioridad
+   como su valor, que es el único vector disponible en el .dat. */
+param valor_costes{p in CAJA} := prioridad[p];
 
-param prioridad{CAJAS};
-param coste_caja{CAJAS};
-param capacidad{CAJAS};
-param peso{CAJAS};
+/* Variables de decisión.
+   El orden de índices de x coincide con el parser de sol-3.py:
+   x[caja, fila, columna, altura]. */
+var x{p in CAJA, f in FILA, c in COLUMNA, a in NIVEL} binary;
+var coste{f in FILA, c in COLUMNA, a in NIVEL} >= 0;
 
-param max_p := max{c in CAJAS} prioridad[c];
-param M := 1 + max_p;
+/* Función objetivo: misma expresión que en parte-marco.mod */
+minimize Coste_Medio:
+    sum{f in FILA, c in COLUMNA, a in NIVEL} coste[f,c,a]
+    / (sum{p in CAJA: valor_costes[p] > 0} 1);
 
-# ---------------- VARIABLES DE DECISIÓN Y FO -----------------------
+/* Restricciones */
 
-var x{p in CAJAS, f in FILAS, c in COLUMNAS, k in ALTURAS}, binary;
-# x = cajas
+# Cada caja se coloca exactamente una vez.
+s.t. Una_posicion_por_caja {p in CAJA}:
+    sum{f in FILA, c in COLUMNA, a in NIVEL} x[p,f,c,a] = 1;
 
-var coste_pos{FILAS, COLUMNAS, ALTURAS};
+# Un hueco puede contener como máximo una caja.
+# Se usa <= 1 para permitir los huecos vacíos que representa sol-3.py.
+s.t. Una_caja_por_hueco {f in FILA, c in COLUMNA, a in NIVEL}:
+    sum{p in CAJA} x[p,f,c,a] <= 1;
 
-# var u{FILAS, COLUMNAS, ALTURAS}, binary;
-# var c{CAJAS} >= 0;
-
-minimize coste_medio:
-    sum{f in FILAS, c in COLUMNAS, k in ALTURAS}
-        coste_pos[f,c,k]
-    / (sum{p in CAJAS: coste_caja[p] > 0} 1);
-
-# Se divide por el número de cajas reales:
-# sum{p in CAJAS: coste_caja[p] > 0} 1
-
-# -------------------------- RESTRICCIONES ---------------------------
-
-s.t. una_posicion_por_caja {p in CAJAS}:
-    sum{f in FILAS, c in COLUMNAS, k in ALTURAS}
-        x[p,f,c,k] = 1;
-
-s.t. una_caja_por_posicion {f in FILAS, c in COLUMNAS, k in ALTURAS}:
-    sum{p in CAJAS}
-        x[p,f,c,k] = 1;
-
+# Las cajas de mayor prioridad deben quedar delante de las de menor prioridad.
 s.t. Mayor_prioridad_delante
-    {f in FILAS, c1 in COLUMNAS, c2 in COLUMNAS,
-     k in ALTURAS: f < L}:
+    {f in FILA, col1 in COLUMNA, col2 in COLUMNA, a in NIVEL: f < L}:
+    sum{p in CAJA} prioridad[p] * x[p,f+1,col1,a]
+    <= sum{p in CAJA} prioridad[p] * x[p,f,col2,a];
 
-    sum{p in CAJAS}
-        prioridad[p] * x[p,f+1,c1,k]
-    <=
-    sum{p in CAJAS}
-        prioridad[p] * x[p,f,c2,k];
+# El peso situado por encima de una caja no puede superar su capacidad.
+s.t. Capacidad_maxima {f in FILA, c in COLUMNA, a1 in NIVEL: a1 < K}:
+    sum{p in CAJA, a2 in NIVEL: a2 > a1} peso[p] * x[p,f,c,a2]
+    <= sum{p in CAJA} capacidad[p] * x[p,f,c,a1];
 
-s.t. Capacidad_maxima
-    {f in FILAS, c in COLUMNAS, k1 in ALTURAS: k1 < K}:
-
-    sum{p in CAJAS, k2 in ALTURAS: k2 > k1}
-        peso[p] * x[p,f,c,k2]
-    <=
-    sum{p in CAJAS}
-        capacidad[p] * x[p,f,c,k1];
-
-s.t. Calcular_coste
-    {f in FILAS, c in COLUMNAS, k in ALTURAS}:
-
-    coste_pos[f,c,k] >=
-        sum{p in CAJAS, f2 in FILAS: f2 > f}
-            coste_caja[p] * x[p,f2,c,k]
-        -
-        (sum{p in CAJAS} coste_caja[p])
-        *
-        (sum{p in CAJAS: coste_caja[p] = 0}
-            x[p,f,c,k]);
+# Cálculo del coste: se conserva la expresión del modelo original.
+s.t. Calcular_coste {f in FILA, c in COLUMNA, a in NIVEL}:
+    coste[f,c,a] >=
+        sum{p in CAJA, f2 in FILA: f2 > f}
+            valor_costes[p] * x[p,f2,c,a]
+        - (sum{p in CAJA} valor_costes[p])
+          * (sum{p in CAJA: valor_costes[p] = 0} x[p,f,c,a]);
 
 end;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#s.t. def_ocupacion {i in FILAS, j in COLUMNAS, k in ALTURAS}: 
- #   sum{ca in CAJAS} x[ca,i,j,k] = u[i,j,k];
-
-# s.t. gravedad {i in FILAS, j in COLUMNAS, k in ALTURAS: k > 1}:
-  #  u[i,j,k] <= u[i,j,k-1];
-
-# Empuja las cajas hacia el fondo para que no queden huecos muertos en medio
-# s.t. gravedad_filas {i in FILAS, j in COLUMNAS, k in ALTURAS: i < L}:
-  #  u[i+1,j,k] <= u[i,j,k];
-
-# Solo exige el orden de prioridad si la posición de delante (i+1) está ocupada
-# s.t. orden_prioridad {i in FILAS, j in COLUMNAS, k in ALTURAS: i < L}:
-  #  sum{ca in CAJAS} prioridad[ca] * x[ca,i+1,j,k] <= 
-   # sum{ca in CAJAS} prioridad[ca] * x[ca,i,j,k] + M * (1 - u[i+1,j,k]);
-
-# s.t. Resistencia {i in FILAS, j in COLUMNAS, k in ALTURAS: k < K}:
-  #  sum{ca in CAJAS} capacidad[ca] * x[ca,i,j,k] >= sum{kp in ALTURAS, ca in CAJAS: kp > k} peso[ca] * x[ca,i,j,kp];
-
-# s.t. calculo_coste {ca in CAJAS, i in FILAS, j in COLUMNAS, k in ALTURAS}:
-  #  c[ca] >= prioridad[ca] * (sum{ip in FILAS: ip > i} u[ip,j,k]) 
-   #          - (prioridad[ca] * L) * (1 - x[ca,i,j,k]);
-
-
-# end; 

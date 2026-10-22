@@ -1,8 +1,8 @@
 data;
 
-param L := 3;
+param L := 2;
 
-param K := 2;
+param K := 3;
 
 param n := 9;
 
