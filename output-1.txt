@@ -1,3 +1,4 @@
-FILA 1: [30, 40, 0]
-FILA 2: [10, 20, 0]
-FILA 3: [0, 0, 0]
+
+--- DISTRIBUCIÓN DEL PALLET (2x2) ---
+FILA 1 (Fondo) : [30, 40]
+FILA 2 (Acceso): [10, 20]

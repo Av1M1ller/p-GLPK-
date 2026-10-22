@@ -1,4 +1,4 @@
-Problem:    part
+Problem:    PARTE_1
 Rows:       11
 Columns:    16 (16 integer, 16 binary)
 Non-zeros:  56

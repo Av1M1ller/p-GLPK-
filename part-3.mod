@@ -39,15 +39,21 @@ s.t. def_ocupacion {i in FILAS, j in COLUMNAS, k in ALTURAS}:
 s.t. gravedad {i in FILAS, j in COLUMNAS, k in ALTURAS: k > 1}:
     u[i,j,k] <= u[i,j,k-1];
 
+# Empuja las cajas hacia el fondo para que no queden huecos muertos en medio
+s.t. gravedad_filas {i in FILAS, j in COLUMNAS, k in ALTURAS: i < L}:
+    u[i+1,j,k] <= u[i,j,k];
+
+# Solo exige el orden de prioridad si la posición de delante (i+1) está ocupada
 s.t. orden_prioridad {i in FILAS, j in COLUMNAS, k in ALTURAS: i < L}:
-    sum{ca in CAJAS} prioridad[ca] * x[ca,i+1,j,k] + M * (1 - u[i+1,j,k]) <= 
-    sum{ca in CAJAS} prioridad[ca] * x[ca,i,j,k]   + M * (1 - u[i,j,k]);
+    sum{ca in CAJAS} prioridad[ca] * x[ca,i+1,j,k] <= 
+    sum{ca in CAJAS} prioridad[ca] * x[ca,i,j,k] + M * (1 - u[i+1,j,k]);
 
 s.t. Resistencia {i in FILAS, j in COLUMNAS, k in ALTURAS: k < K}:
     sum{ca in CAJAS} capacidad[ca] * x[ca,i,j,k] >= sum{kp in ALTURAS, ca in CAJAS: kp > k} peso[ca] * x[ca,i,j,kp];
 
 s.t. calculo_coste {ca in CAJAS, i in FILAS, j in COLUMNAS, k in ALTURAS}:
-    c[ca] >= prioridad[ca] * (sum{ip in FILAS: ip < i} u[ip,j,k]) 
-             - (prioridad[ca] * (i - 1)) * (1 - x[ca,i,j,k]);
+    c[ca] >= prioridad[ca] * (sum{ip in FILAS: ip > i} u[ip,j,k]) 
+             - (prioridad[ca] * L) * (1 - x[ca,i,j,k]);
+
 
 end;

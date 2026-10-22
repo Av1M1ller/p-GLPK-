@@ -6,20 +6,20 @@ def get_ints(linea: str):
     """Convierte una línea de texto con números separados por espacios en una lista de enteros."""
     return [int(x) for x in linea.strip().split()]
 
+# ---------------- Funciones para gestionar el .in y crear el archivo .dat ----------------
 def leer_in(archivo_in):
-    """
-    Lee y valida el fichero .in del problema 3D:
-
-    """
+    """Lee y valida el fichero .in del problema 3D (Parte 2)."""
     with open(archivo_in, "r") as f:
-        # Lado del pallet (L) y altura máxima (H)
+        # Extraemos las dimensiones (L, H) y los vectores de datos de las cajas
         dimensiones = get_ints(f.readline())
         prioridades = get_ints(f.readline())
         pesos = get_ints(f.readline())
         capacidad = get_ints(f.readline())
 
-    n_cajas = dimensiones[0] ** 2 * dimensiones[1]  # L^2 * H
-    # Comprueba que la cantidad de datos coincida con el número total de cajas del pallet 3D
+    #cajas totales = L * L * H
+    n_cajas = dimensiones[0] ** 2 * dimensiones[1]  
+    
+    #Validación
     if not (len(prioridades) == len(pesos) == len(capacidad) == n_cajas):
         raise ValueError("El número de cajas no coincide con L^2 * H")
 
@@ -32,23 +32,24 @@ def crear_archivo_data(archivo_in, nombre_archivo_dat):
 
     with open(nombre_archivo_dat, "w", encoding="utf-8") as f:
         f.write("data;\n\n")
-        # Dimensiones del pallet
+        # Parámetro L: lado del pallet cuadrado
         f.write(f"param L := {lado};\n")
+        # Parámetro K: altura máxima del pallet (H)
         f.write(f"param K := {niveles};\n\n")
 
-        # Prioridad de cada caja
+        # Volcado del vector de prioridades (1 valor, 2 valor...)
         f.write("param prioridad :=\n")
         for idx, valor in enumerate(prioridades, start=1):
             f.write(f"  {idx} {valor}\n")
         f.write(";\n\n")
 
-        # Peso en gramos de cada caja
+        # Volcado del vector de pesos
         f.write("param peso :=\n")
         for idx, valor in enumerate(pesos, start=1):
             f.write(f"  {idx} {valor}\n")
         f.write(";\n\n")
 
-        # Capacidad de soporte de cada caja
+        # Volcado del vector de capacidades (resistencia)
         f.write("param capacidad :=\n")
         for idx, valor in enumerate(capacidad, start=1):
             f.write(f"  {idx} {valor}\n")
@@ -56,67 +57,84 @@ def crear_archivo_data(archivo_in, nombre_archivo_dat):
 
     return nombre_archivo_dat
 
-def crear_archivo_salida(dimensiones, prioridades, expresion_regular, pesos = None, capacidad = None, nombre_fichero_in = "ejemplo.txt", nombre_output_glpk= "resultado.txt", nombre_archivo_salida = "salida.txt"):
-    resultado = []
-    n_filas = dimensiones
-    # patron = r"\s*\d+\s+x\[\d+,\d+,\d+,\d+\]\s+\*\s+1\s+0\s+1"
-
-    patron = expresion_regular
-    with open(nombre_output_glpk, "r") as f: # sirve para cualquier caso
+def crear_archivo_salida(dimensiones, prioridades, pesos, capacidad, nombre_output_glpk="resultado.txt", nombre_archivo_salida="output-2.txt"):
+    """
+    Lee el volcado de GLPK, filtra las asignaciones activas usando regex,
+    y genera un mapa visual 3D separado por pisos.
+    """
+    L = dimensiones[0]
+    H = dimensiones[1]
+    
+    # Inicialización de la matriz 3D con las dimensiones del pallet (H x L x L)
+    matriz = [[[["-"] for _ in range(L)] for _ in range(L)] for _ in range(H)]
+    
+    # Regex para capturar los índices de la variable de decisión x[k, i, j, a] cuando vale 1
+    patron = r"x\[(\d+),(\d+),(\d+),(\d+)\]\s+\*\s+1"
+    
+    with open(nombre_output_glpk, "r") as f:
         for linea in f:
             coincidencia = re.search(patron, linea)
             if coincidencia:
-                linea = linea.split()
-                resultado.append(linea)
+                k = int(coincidencia.group(1))
+                i = int(coincidencia.group(2))
+                j = int(coincidencia.group(3))
+                a = int(coincidencia.group(4))
+                
+                #Rellenamos la posición exacta con los atributos de la caja asignada
+                matriz[a-1][i-1][j-1] = f"[P:{prioridades[k-1]}, W:{pesos[k-1]}, C:{capacidad[k-1]}]"
 
-    print(resultado)
+    #Generación del formato visual en texto
+    resultado_visual = f"\n--- DISTRIBUCIÓN DEL PALLET 3D ({L}x{L}x{H}) ---\n\n"
+    for a in range(H):
+        resultado_visual += f"=== PISO {a+1} {'(Suelo)' if a == 0 else '(Superior)'} ===\n"
+        for i in range(L):
+            # Etiquetamos las filas para orientarnos sobre qué lado es el acceso
+            if i == 0:
+                etiqueta = f"FILA {i+1} (Fondo) :"
+            elif i == L - 1:
+                etiqueta = f"FILA {i+1} (Acceso):"
+            else:
+                etiqueta = f"FILA {i+1}          :"
 
-    filas = []
-    filas.append([]*n_filas)
-    
+            resultado_visual += f"{etiqueta} {matriz[a][i]}\n"
+            resultado_visual += "\n"
 
+    with open(nombre_archivo_salida, "w", encoding="utf-8") as f:
+        f.write(resultado_visual)
         
-
-    
-    # filas = [0,0,0,0,0,0,0,0,0]
-    # output_xs = []
-    # # dimensiones , prioridades, pesos, capacidad  = leer_in(nombre_fichero_in) #TODO: Añadir pesos y capacidad?
-
-    # for element in resultado:
-    #     output_xs.append(element[1])
-
-    # for element in output_xs: # x[1,2,1,3] x[k,i,j,a] 
-    #     for i in range(1,4): 
-    #         print(f"element[4]:  {element[4]}, i: {i}")
-    #         if int(element[4]) == i: # # x[1,2,2] x[k,i,j] , element[4] = 2, que es = fila
-    #             posicion = (i - 1) * 3 + int(element[6]) - 1  # x[1,2,2] x[k,i,j] , element[6] = 2, que es = columna. Se multiplica x3 a razón de i-1 porque representamos una matriz en un vector
-    #             filas[posicion] = [prioridades[int(element[2])-1], pesos[int(element[2])-1], capacidad[int(element[2])-1]]
-
-    # with open(nombre_archivo_salida, "w") as f:
-    #     for i in range(0,3):
-    #         f.write(f"FILA {i+1}: ")
-    #         f.write(f"{filas[0+3*i:3+3*i]}\n")
-    # # x[1,2,1,3]
+    print(resultado_visual)
 
 def main():
-    # Argumentos por línea de comandos
+    #Captura de los argumentos obligatorios por línea de comandos
     parser = argparse.ArgumentParser()
     parser.add_argument("--nombre_fichero_in", type=str, required=True, help="Fichero .in de entrada")
     parser.add_argument("--nombre_fichero_dat", type=str, required=True, help="Fichero .dat a generar")
     args = parser.parse_args()
 
-    # Genera el fichero de datos intermedio
+    #Generamos el archivo .dat a partir de los datos originales
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
     modelo = "part-2.mod"
-    path = r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe"
-    comando = [path,"--math", modelo,"--data", datos,"--output", "resultado.txt"]
-    subprocess.run(comando, check = True) #what is capture_output and text?
+    
+    path = "glpsol" 
+    
+    #Comando a ejecutar
+    comando = [path, "--math", modelo, "--data", datos, "--name", "PARTE_2", "--output", "resultado.txt"]
+    
+    print("Resolviendo modelo 3D, por favor espera...")
+    try:
+        #capture_output=True mantiene la consola limpia
+        subprocess.run(comando, check=True, capture_output=True, text=True)
+        print("¡Optimización completada con éxito!")
+    except subprocess.CalledProcessError as e:
+        print("\nError al ejecutar GLPK:\n", e.stderr)
+        return
 
+    #Extraemos los datos iniciales
     dimensiones, prioridades, pesos, capacidad = leer_in(args.nombre_fichero_in)
-    expresion_regular = r"\s*\d+\s+x\[\d+,\d+,\d+,\d+\]\s+\*\s+1\s+0\s+1"
+    
+    #Parseamos el archivo de resultados de GLPK y generamos el output
+    crear_archivo_salida(dimensiones, prioridades, pesos, capacidad, nombre_output_glpk="resultado.txt", nombre_archivo_salida="output-2.txt")
 
-    crear_archivo_salida(dimensiones = dimensiones, prioridades=prioridades, expresion_regular = expresion_regular, pesos=pesos, capacidad = capacidad, nombre_fichero_in = args.nombre_fichero_in, nombre_output_glpk="resultado.txt", nombre_archivo_salida="output-2.txt")
-
-main() #esto hace que se ejecute la función main y por tanto el código que está dentro de él, creo que es mejor así para que esté más estructurado el código
-
-# prioridades, expresion_regular, n_pallets = 1, n_alturas= 1,pesos = None, capacidad = None, nombre_fichero_in = "ejemplo.txt", nombre_output_glpk= "resultado.txt", nombre_archivo_salida = "salida.txt"
+if __name__ == "__main__":
+    #Punto de inicio
+    main()
