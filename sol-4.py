@@ -81,31 +81,22 @@ def crear_archivo_salida(nombre_fichero_in, nombre_archivo_glpk="resultado.txt",
     """
          3 x[1,1,3,1,1]     *              0             0             1 
     """
-    print("SE HA ENTRADO CORRECTAMENTE A LA FUNCION CREAR ARCHIVO SALIDA")
+    # print("SE HA ENTRADO A LA FUNCION CREAR ARCHIVO SALIDA")
     n_cajas_niveles_costeMontaje, prioridades, pesos, capacidad = leer_in(nombre_fichero_in) 
     L = n_cajas_niveles_costeMontaje[0]
     H = n_cajas_niveles_costeMontaje[1]
     m = len(prioridades)
     
-    #Matriz inicializada con huecos vacíos ("-")
+    #Matriz inicializada con huecos vacíos 
     matriz = [[[[["-"] for _ in range(L)] for _ in range(L)] for _ in range(H)] for _ in range(m)]
-    #matriz = [[[["-" for _ in range(L)] for _ in range(L)] for _ in range(H)] for _ in range(m)]
     pallets_usados = set()
     
-    #Expresión regular para capturar x[caja, fila, columna, altura, pallet]
-    # patron = r"x\[(\d+),(\d+),(\d+),(\d+),(\d+)\]\s+\*\s+1"
-    
-    #patron = r"x\[(\d+),(\d+),(\d+),(\d+),(\d+)\]\s+\*\s+1"
-    #patron = r"\s* \d+ x\[(\d+),(\d+),(\d+),(\d+),(\d+)\]\s* \* \s+1\s+0\s+1"
-    
-    #patron = r"^\s*\d+\s+x\[([\d,]+)\]\s*\*\s+1\s+0\s+1" 
-    print("HOLAAAAAAAAAAAAAAA1")
+    #Expresión regular para capturar la línea de resultado.txt generado por glpsol que indica que la caja se ha colocado
     patron = r"^\s*\d+\s+x\[(\d+),(\d+),(\d+),(\d+),(\d+)\]\s*\*\s+1\s+0\s+1" 
 
-    print("HOLAAAAAAAAAAAAAAA2")
     n_coincidencias = 0
     with open(nombre_archivo_glpk, "r") as f:
-        print(f"SE HA ABIERTO EL ARCHIVO CORRECTAMENTE")
+        # print(f"SE HA ABIERTO EL ARCHIVO CORRECTAMENTE")
         for linea in f:
             coincidencia = re.search(patron, linea)
             if coincidencia:
@@ -149,7 +140,7 @@ def main():
     parser.add_argument("--nombre_fichero_dat", type=str, required=True)
     args = parser.parse_args()
 
-    path_local_glpk = r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" #"glpsol"
+    path_local_glpk = "glpsol" #r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" #"glpsol"
     modelo = "part-4.mod"
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
 
