@@ -1,3 +1,9 @@
+(número de restricciones) Rows:       106
+
+(número de variables de decisión) Columns:    171 (147 integer, 147 binary)
+
+Objective:  Coste_Total = 6 (MINimum)
+
 
 --- DISTRIBUCIÓN MULTIPALLET (2x2x2) ---
 

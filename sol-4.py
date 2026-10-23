@@ -97,12 +97,20 @@ def crear_archivo_salida(nombre_fichero_in, nombre_archivo_glpk="resultado.txt",
     n_coincidencias = 0
     with open(nombre_archivo_glpk, "r") as f:
         # print(f"SE HA ABIERTO EL ARCHIVO CORRECTAMENTE")
+        f.readline()
+        rows = f.readline()
+        columns = f.readline()
+        f.readline()
+        f.readline()
+        f_objetivo = f.readline()
+
+
         for linea in f:
             coincidencia = re.search(patron, linea)
-            if coincidencia:
-                n_coincidencias += 1
-            print(f"COINCIDENCIA: {coincidencia}")
-            print(f"NUMERO: {n_coincidencias}")
+            # if coincidencia:
+                # n_coincidencias += 1
+            # print(f"COINCIDENCIA: {coincidencia}")
+            # print(f"NUMERO: {n_coincidencias}")
             if coincidencia:
                 k = int(coincidencia.group(1))
                 i = int(coincidencia.group(2))
@@ -128,6 +136,9 @@ def crear_archivo_salida(nombre_fichero_in, nombre_archivo_glpk="resultado.txt",
                     resultado_visual += f"{etiqueta} {matriz[q][a][i]}\n"
     
     with open(nombre_archivo_salida, "w", encoding="utf-8") as f:
+        f.write(f"(número de restricciones) {rows}\n") #Número restricciones
+        f.write(f"(número de variables de decisión) {columns}\n") #Número de variables de decisión
+        f.write(f"{f_objetivo}\n") #Función objetivo
         f.write(resultado_visual)
         
     print(resultado_visual)

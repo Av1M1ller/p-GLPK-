@@ -84,7 +84,14 @@ def crear_archivo_salida(nombre_fichero_in, nombre_output_glpk= "resultado.txt",
     # Expresión para capturar x[caja, fila, columna, altura]
     patron = r"x\[(\d+),(\d+),(\d+),(\d+)\]\s+\*\s+1"
     
-    with open(nombre_output_glpk, "r") as f:
+    with open(nombre_output_glpk, "r") as f: #2,3,6
+        f.readline()
+        rows = f.readline()
+        columns = f.readline()
+        f.readline()
+        f.readline()
+        f_objetivo = f.readline()
+
         for linea in f:
             coincidencia = re.search(patron, linea)
             if coincidencia:
@@ -106,6 +113,9 @@ def crear_archivo_salida(nombre_fichero_in, nombre_output_glpk= "resultado.txt",
         resultado_visual += "\n"
 
     with open(nombre_archivo_salida, "w", encoding="utf-8") as f:
+        f.write(f"(número de restricciones) {rows}\n") #Número restricciones
+        f.write(f"(número de variables de decisión) {columns}\n") #Número de variables de decisión
+        f.write(f"{f_objetivo}\n") #Función objetivo
         f.write(resultado_visual)
         
     print(resultado_visual)
@@ -120,7 +130,7 @@ def main():
     args = parser.parse_args()
 
     #Rutas locales del solver GLPK y del modelo 3D con espacios vacíos
-    path_local_glpk = "glpsol" #r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" #
+    path_local_glpk = "glpsol" #r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" # 
     modelo = "part-3.mod"
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
 

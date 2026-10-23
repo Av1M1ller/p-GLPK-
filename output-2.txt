@@ -1,3 +1,9 @@
+(número de restricciones) Rows:       39
+
+(número de variables de decisión) Columns:    144 (144 integer, 144 binary)
+
+Objective:  coste_medio = 1.166666667 (MINimum)
+
 
 --- DISTRIBUCIÓN DEL PALLET 3D (2x2x3) ---
 
