@@ -113,6 +113,9 @@ def crear_archivo_salida(dimensiones, prioridades, pesos, capacidad, nombre_outp
         f.write(f"(número de restricciones) {rows}\n") #Número restricciones
         f.write(f"(número de variables de decisión) {columns}\n") #Número de variables de decisión
         f.write(f"{f_objetivo}\n") #Función objetivo
+        print(f"(número de restricciones) {rows}")
+        print(f"(número de variables de decisión) {columns}")
+        print(f"{f_objetivo}")
         f.write(resultado_visual)
         
     print(resultado_visual)
@@ -136,7 +139,6 @@ def main():
     try:
         #capture_output=True mantiene la consola limpia
         subprocess.run(comando, check=True, capture_output=True, text=True)
-        print("¡Optimización completada con éxito!")
     except subprocess.CalledProcessError as e:
         print("\nError al ejecutar GLPK:\n", e.stderr)
         return

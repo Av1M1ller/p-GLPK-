@@ -116,13 +116,16 @@ def crear_archivo_salida(nombre_fichero_in, nombre_output_glpk= "resultado.txt",
         f.write(f"(número de restricciones) {rows}\n") #Número restricciones
         f.write(f"(número de variables de decisión) {columns}\n") #Número de variables de decisión
         f.write(f"{f_objetivo}\n") #Función objetivo
+        print(f"(número de restricciones) {rows}")
+        print(f"(número de variables de decisión) {columns}")
+        print(f"{f_objetivo}")
         f.write(resultado_visual)
         
     print(resultado_visual)
 
 
 def main():
-    print("LINEA UNO DEL MAIN")
+    # print("LINEA UNO DEL MAIN")
     #Argumentos de entrada por línea de comandos
     parser = argparse.ArgumentParser()
     parser.add_argument("--nombre_fichero_in", type=str, required=True)
@@ -140,7 +143,6 @@ def main():
     try:
         #capture_output=True para ocultar el bloque que ensucia
         subprocess.run(comando, check=True, capture_output=True, text=True)
-        print("Optimización completada con éxito!")
     except subprocess.CalledProcessError as e:
         print("\nError al ejecutar GLPK:\n", e.stderr)
         return

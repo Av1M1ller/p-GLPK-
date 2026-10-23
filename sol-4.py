@@ -139,6 +139,9 @@ def crear_archivo_salida(nombre_fichero_in, nombre_archivo_glpk="resultado.txt",
         f.write(f"(número de restricciones) {rows}\n") #Número restricciones
         f.write(f"(número de variables de decisión) {columns}\n") #Número de variables de decisión
         f.write(f"{f_objetivo}\n") #Función objetivo
+        print(f"(número de restricciones) {rows}")
+        print(f"(número de variables de decisión) {columns}")
+        print(f"{f_objetivo}")
         f.write(resultado_visual)
         
     print(resultado_visual)
@@ -151,7 +154,7 @@ def main():
     parser.add_argument("--nombre_fichero_dat", type=str, required=True)
     args = parser.parse_args()
 
-    path_local_glpk = "glpsol" #r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" #
+    path_local_glpk = "glpsol" #r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe"
     modelo = "parte-4.mod"
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
 

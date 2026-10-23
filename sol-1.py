@@ -86,6 +86,9 @@ def crear_archivo_salida(nombre_fichero_in, nombre_output_glpk="resultado.txt", 
         f.write(f"(número de restricciones) {rows}\n") #Número restricciones
         f.write(f"(número de variables de decisión) {columns}\n") #Número de variables de decisión
         f.write(f"{f_objetivo}\n") #Función objetivo
+        print(f"(número de restricciones) {rows}")
+        print(f"(número de variables de decisión) {columns}")
+        print(f"{f_objetivo}")
         f.write(resultado_visual)
         f.write(resultado_visual)
         
@@ -102,7 +105,7 @@ def main():
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
     modelo = "parte-1.mod"
     
-    path_local_glpk = "glpsol" #r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" #
+    path_local_glpk = "glpsol" #r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" 
     
     #Configurar la llamada a GLPK
     comando = [path_local_glpk, "--math", modelo, "--data", datos, "--name", "PARTE_1", "--output", "resultado.txt"]
@@ -110,7 +113,6 @@ def main():
     try:
         # Se añade capture_output=True para mantener la consola limpia
         subprocess.run(comando, check=True, capture_output=True, text=True)
-        print("¡Optimización completada con éxito!")
     except subprocess.CalledProcessError as e:
         print("\nError al ejecutar GLPK:\n", e.stderr)
         return
