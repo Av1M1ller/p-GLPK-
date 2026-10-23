@@ -103,14 +103,15 @@ def crear_archivo_salida(nombre_fichero_in, nombre_archivo_glpk="resultado.txt",
     patron = r"^\s*\d+\s+x\[(\d+),(\d+),(\d+),(\d+),(\d+)\]\s*\*\s+1\s+0\s+1" 
 
     print("HOLAAAAAAAAAAAAAAA2")
-
+    n_coincidencias = 0
     with open(nombre_archivo_glpk, "r") as f:
         print(f"SE HA ABIERTO EL ARCHIVO CORRECTAMENTE")
         for linea in f:
-            print("EMPIEZA AQUIIII")
             coincidencia = re.search(patron, linea)
+            if coincidencia:
+                n_coincidencias += 1
             print(f"COINCIDENCIA: {coincidencia}")
-            print()
+            print(f"NUMERO: {n_coincidencias}")
             if coincidencia:
                 k = int(coincidencia.group(1))
                 i = int(coincidencia.group(2))
@@ -142,30 +143,25 @@ def crear_archivo_salida(nombre_fichero_in, nombre_archivo_glpk="resultado.txt",
 
 
 def main():
-    print("LINEA UNO DEL MAIN")
     #Argumentos de entrada por consola
     parser = argparse.ArgumentParser() 
     parser.add_argument("--nombre_fichero_in", type=str, required=True)
     parser.add_argument("--nombre_fichero_dat", type=str, required=True)
     args = parser.parse_args()
 
-    # Rutas locales del solver GLPK y del modelo multipallet
     path_local_glpk = r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" #"glpsol"
-    modelo = "part-4-marco-compatible.mod"
+    modelo = "part-4.mod"
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
 
     # Invocación de glpsol (ahora con 10s)
     comando = [path_local_glpk, "--math", modelo, "--data", datos, "--tmlim", "50", "--name", "PARTE_4", "--output", "resultado.txt"]
 
-    print("Ejecutando, 10 S...")
-
-    # Capture_output=True oculta la salida de GLPK para que no ensucie.ç
-    print("ANTES DE LLAMAR A subprocess")
+    # print("ANTES DE LLAMAR A subprocess")
     subprocess.run(comando, check=True, capture_output=True, text=True) 
 
-    print("ANTES LLAMAR A LA FUNCIÓN DE CREAR ARCHIVO")
+    # print("ANTES LLAMAR A LA FUNCIÓN DE CREAR ARCHIVO") 
     crear_archivo_salida(args.nombre_fichero_in, nombre_archivo_glpk="resultado.txt", nombre_archivo_salida="output-4.txt")
-    print("DESPUES DE LLAMAS A LA FUNCION DE CREAR ARCHIVO")
+    # print("DESPUES DE LLAMAS A LA FUNCION DE CREAR ARCHIVO")
 
     # esto hace que se ejecute la función main y por tanto el código que está dentro de él, creo que es mejor así para que esté más estructurado el código
 

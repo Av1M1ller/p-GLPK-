@@ -1,67 +1,124 @@
-# ----------------------- PARÁMETROS GENERALES -----------------------
+/* PARTE 4: modelo multipallet adaptado a sol-4.py */
 
+# -----------------------------------------------------------------------------
+# Parámetros generales
+# -----------------------------------------------------------------------------
+
+# sol-4.py escribe en el .dat los parámetros L, H, P, n y m.
 param L, integer, > 0;
 param H, integer, > 0;
+param P, >= 0;
 param n, integer, > 0;
-param m, integer, > 0, <= n;
-param P, integer, > 0;
 
-# --------------------------------------------------------------------
+# sol-4.py también escribe m (número máximo de pallets disponibles).
+# Se declara para que el parámetro del archivo .dat sea reconocido. Se conserva
+# el límite de pallets del modelo original: ceil(n / L).
+param m, integer, > 0;
 
-set FILAS := 1..L;
-set COLUMNAS := 1..L;
-set ALTURAS := 1..H;
-set CAJAS := 1..n;
-set PALLETS := 1..m;
+# -----------------------------------------------------------------------------
+# Conjuntos
+# -----------------------------------------------------------------------------
 
-# -------------- PARÁMETROS ASOCIADOS A "LA CAJA" -------------------
+set FILA    := 1..L;
+set COLUMNA := 1..L;
+set NIVEL   := 1..H;
+set PALLET  := 1..ceil(n / L);
+set CAJA    := 1..n;
 
-param prioridad{CAJAS}, > 0;
-param peso{CAJAS}, > 0;
-param capacidad{CAJAS}, >= 0;
+# -----------------------------------------------------------------------------
+# Datos de las cajas
+# Los nombres coinciden con los que escribe sol-4.py en el .dat.
+# -----------------------------------------------------------------------------
 
-param max_p := max{k in CAJAS} prioridad[k];
-param M := 1 + max_p;
+param prioridad{CAJA};
+param peso{CAJA};
+param capacidad{CAJA};
 
-# --------------------------------------------------------------------
+# sol-4.py no proporciona un vector de costes por caja. Para que el modelo
+# pueda ejecutarse con sus datos actuales, se toma el coste de cada caja igual
+# a su prioridad. Si los costes deben ser distintos de las prioridades, habrá
+# que añadir valor_costes al .dat en sol-4.py.
+param valor_costes{p in CAJA} := prioridad[p];
 
-var x{CAJAS, FILAS, COLUMNAS, ALTURAS, PALLETS}, binary;
-var u{FILAS, COLUMNAS, ALTURAS, PALLETS}, binary;
-var y{PALLETS}, binary;
-var c{CAJAS} >= 0;
+# Cota usada para representar el efecto de las posiciones vacías en la
+# restricción de prioridades, conservando la formulación original.
+param prioridad_vacia := (max{p in CAJA} prioridad[p]) + 1;
 
-minimize coste_total: sum{q in PALLETS} P * y[q] + (1/n) * sum{k in CAJAS} c[k];
+# -----------------------------------------------------------------------------
+# Variables de decisión
+# -----------------------------------------------------------------------------
 
-# Cada caja va a una única posición y pallet
-s.t. una_posicion_por_caja{k in CAJAS}: 
-    sum{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS} x[k,i,j,a,q] = 1;
+# x[caja, fila, columna, altura, pallet], como espera sol-4.py al leer el
+# archivo de salida de GLPK.
+var x{p in CAJA, f in FILA, c in COLUMNA, a in NIVEL, q in PALLET} binary;
 
-# Ocupación de celda ligada a la activación del pallet
-s.t. def_ocupacion{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS}: 
-    sum{k in CAJAS} x[k,i,j,a,q] = u[i,j,a,q];
+# Coste asociado a cada posición.
+var coste{f in FILA, c in COLUMNA, a in NIVEL, q in PALLET} >= 0;
 
-s.t. uso_pallet{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS}:
-    u[i,j,a,q] <= y[q];
+# Indica si un pallet se utiliza.
+var pallet_usado{q in PALLET} binary;
 
-# Orden de prioridad (solo si la celda delantera está ocupada)
-s.t. orden_prioridad{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS: i < L}: 
-    sum{k in CAJAS} prioridad[k] * x[k,i+1,j,a,q] <= 
-    sum{k in CAJAS} prioridad[k] * x[k,i,j,a,q] + M * (1 - u[i+1,j,a,q]);
+# -----------------------------------------------------------------------------
+# Función objetivo (misma estructura que el modelo original)
+# -----------------------------------------------------------------------------
 
-# Resistencia vertical
-s.t. resistencia{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS: a < H}:
-    sum{k in CAJAS} capacidad[k] * x[k,i,j,a,q] >= sum{ap in ALTURAS, k in CAJAS: ap > a} peso[k] * x[k,i,j,ap,q];
+minimize Coste_Total:
+    sum{f in FILA, c in COLUMNA, a in NIVEL, q in PALLET}
+        coste[f, c, a, q]
+    + P * sum{q in PALLET} pallet_usado[q];
 
-# Gravedad vertical (no flotar)
-s.t. gravedad_vertical{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS: a < H}:
-    u[i,j,a+1,q] <= u[i,j,a,q];
+# -----------------------------------------------------------------------------
+# Restricciones
+# -----------------------------------------------------------------------------
 
-# Gravedad horizontal (empujar al fondo para evitar huecos)
-s.t. gravedad_horizontal{i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS: i < L}:
-    u[i+1,j,a,q] <= u[i,j,a,q];
+# Cada caja se coloca exactamente una vez.
+s.t. Una_posicion_por_caja {p in CAJA}:
+    sum{f in FILA, c in COLUMNA, a in NIVEL, q in PALLET}
+        x[p, f, c, a, q] = 1;
 
-# Cálculo exacto del coste de extracción
-s.t. calculo_coste{k in CAJAS, i in FILAS, j in COLUMNAS, a in ALTURAS, q in PALLETS}:
-    c[k] >= prioridad[k] * (sum{ip in FILAS: ip > i} u[ip,j,a,q]) - (prioridad[k] * L) * (1 - x[k,i,j,a,q]);
+# Como máximo una caja por hueco; un pallet no utilizado no admite cajas.
+s.t. Una_caja_por_hueco {f in FILA, c in COLUMNA, a in NIVEL, q in PALLET}:
+    sum{p in CAJA} x[p, f, c, a, q] <= pallet_usado[q];
+
+# Las cajas de mayor prioridad deben estar delante de las de menor prioridad.
+s.t. Mayor_prioridad_delante {
+    f in FILA, col1 in COLUMNA, col2 in COLUMNA, a in NIVEL, q in PALLET
+    : f < L
+}:
+    sum{p in CAJA}
+        (prioridad_vacia - prioridad[p]) * x[p, f + 1, col1, a, q]
+    >=
+    sum{p in CAJA}
+        (prioridad_vacia - prioridad[p]) * x[p, f, col2, a, q];
+
+# Las cajas no pueden soportar más peso del que indica su capacidad.
+s.t. Capacidad_maxima {f in FILA, c in COLUMNA, a1 in NIVEL, q in PALLET
+                        : a1 < H}:
+    sum{p in CAJA, a2 in NIVEL : a2 > a1}
+        peso[p] * x[p, f, c, a2, q]
+    <=
+    sum{p in CAJA} capacidad[p] * x[p, f, c, a1, q];
+
+# No puede haber cajas sobre un hueco, incluso si una caja pesa cero.
+s.t. Sin_cajas_sobre_huecos {f in FILA, c in COLUMNA, a in NIVEL, q in PALLET
+                              : a < H}:
+    sum{p in CAJA} x[p, f, c, a + 1, q]
+    <=
+    sum{p in CAJA} x[p, f, c, a, q];
+
+# Calcula el coste de una posición a partir de las cajas situadas detrás,
+# conservando la expresión del modelo original.
+s.t. Calcular_coste {f in FILA, c in COLUMNA, a in NIVEL, q in PALLET}:
+    coste[f, c, a, q] >=
+        sum{p in CAJA, f2 in FILA : f2 > f}
+            valor_costes[p] * x[p, f2, c, a, q]
+        - (sum{p in CAJA} valor_costes[p])
+            * (1 - sum{p in CAJA} x[p, f, c, a, q]);
+
+# Todo pallet marcado como utilizado debe contener alguna caja real.
+s.t. Pallet_no_vacio {q in PALLET}:
+    pallet_usado[q] <=
+        sum{p in CAJA, f in FILA, c in COLUMNA, a in NIVEL}
+            x[p, f, c, a, q];
 
 end;

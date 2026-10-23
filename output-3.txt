@@ -1,13 +1,11 @@
 
---- DISTRIBUCIÓN DEL PALLET (HUECOS PERMITIDOS) (3x3x2) ---
+--- DISTRIBUCIÓN DEL PALLET (HUECOS PERMITIDOS) (2x2x2) ---
 
 === PISO 1 (Suelo) ===
-FILA 1 (Fondo) : ['[P:45, W:30, C:85]', '[P:30, W:20, C:110]', '[P:60, W:45, C:70]']
-FILA 2          : [['-'], '[P:10, W:25, C:90]', '[P:15, W:10, C:150]']
-FILA 3 (Acceso): [['-'], ['-'], ['-']]
+FILA 1 (Fondo) : ['[P:9, W:11, C:7]', '[P:8, W:6, C:6]']
+FILA 2 (Acceso): ['[P:3, W:9, C:4]', ['-']]
 
 === PISO 2 (Superior) ===
-FILA 1 (Fondo) : ['[P:70, W:35, C:75]', '[P:95, W:40, C:60]', '[P:80, W:30, C:80]']
-FILA 2          : [['-'], ['-'], '[P:25, W:15, C:120]']
-FILA 3 (Acceso): [['-'], ['-'], ['-']]
+FILA 1 (Fondo) : ['[P:4, W:3, C:8]', '[P:11, W:2, C:2]']
+FILA 2 (Acceso): ['[P:4, W:1, C:3]', ['-']]
 
