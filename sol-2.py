@@ -120,7 +120,6 @@ def main():
     #Comando a ejecutar
     comando = [path, "--math", modelo, "--data", datos, "--name", "PARTE_2", "--output", "resultado.txt"]
     
-    print("Resolviendo modelo 3D, por favor espera...")
     try:
         #capture_output=True mantiene la consola limpia
         subprocess.run(comando, check=True, capture_output=True, text=True)
@@ -135,6 +134,5 @@ def main():
     #Parseamos el archivo de resultados de GLPK y generamos el output
     crear_archivo_salida(dimensiones, prioridades, pesos, capacidad, nombre_output_glpk="resultado.txt", nombre_archivo_salida="output-2.txt")
 
-if __name__ == "__main__":
-    #Punto de inicio
-    main()
+
+main()

@@ -27,7 +27,7 @@ def leer_in(archivo_in):
             return n_cajas_niveles_costeMontaje, prioridades, pesos, capacidad
 
     except Exception as e:
-        raise IOError(f"Error al leer el archivo de entrada '{archivo_in}': {e}")
+        raise Exception(f"Error al leer el archivo de entrada '{archivo_in}': {e}")
 
 
 def crear_archivo_data(archivo_in, nombre_archivo_dat):
@@ -91,7 +91,7 @@ def crear_archivo_salida(nombre_fichero_in, nombre_archivo_glpk="resultado.txt",
     matriz = [[[[["-"] for _ in range(L)] for _ in range(L)] for _ in range(H)] for _ in range(m)]
     pallets_usados = set()
     
-    #Expresión regular para capturar la línea de resultado.txt generado por glpsol que indica que la caja se ha colocado
+    #Expresión regular para capturar la línea de resultado.txt generado por glpsol que indique que la caja se ha colocado
     patron = r"^\s*\d+\s+x\[(\d+),(\d+),(\d+),(\d+),(\d+)\]\s*\*\s+1\s+0\s+1" 
 
     n_coincidencias = 0
@@ -120,9 +120,9 @@ def crear_archivo_salida(nombre_fichero_in, nombre_archivo_glpk="resultado.txt",
         resultado_visual += "No se ha encontrado ninguna solución válida.\n"
     else:
         for q in sorted(list(pallets_usados)):
-            resultado_visual += f"\n================== PALLET {q+1} ==================\n"
+            resultado_visual += f"\n-------------- PALLET {q+1} --------------n"
             for a in range(H):
-                resultado_visual += f"\n=== PISO {a+1} {'(Suelo)' if a == 0 else '(Superior)'} ===\n"
+                resultado_visual += f"\n----- PISO {a+1} {'(Suelo)' if a == 0 else '(Superior)'} -----\n" #expresión ternaria para poner el condicional en una sola línea 
                 for i in range(L):
                     etiqueta = f"FILA {i+1} (Fondo) :" if i == 0 else (f"FILA {i+1} (Acceso):" if i == L - 1 else f"FILA {i+1}          :")
                     resultado_visual += f"{etiqueta} {matriz[q][a][i]}\n"
@@ -140,12 +140,12 @@ def main():
     parser.add_argument("--nombre_fichero_dat", type=str, required=True)
     args = parser.parse_args()
 
-    path_local_glpk = "glpsol" #r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" #"glpsol"
+    path_local_glpk = "glpsol" #r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" #
     modelo = "part-4.mod"
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
 
-    # Invocación de glpsol (ahora con 10s)
-    comando = [path_local_glpk, "--math", modelo, "--data", datos, "--tmlim", "50", "--name", "PARTE_4", "--output", "resultado.txt"]
+    # Invocación de glpsol 
+    comando = [path_local_glpk, "--math", modelo, "--data", datos, "--name", "PARTE_4", "--output", "resultado.txt"]
 
     # print("ANTES DE LLAMAR A subprocess")
     subprocess.run(comando, check=True, capture_output=True, text=True) 
