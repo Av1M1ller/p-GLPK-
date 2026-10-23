@@ -51,10 +51,18 @@ def crear_archivo_salida(nombre_fichero_in, nombre_output_glpk="resultado.txt", 
     patron = r"x\[(\d+),(\d+),(\d+)\]\s+\*\s+1"
     
     with open(nombre_output_glpk, "r") as f:
+        f.readline()
+        rows = f.readline()
+        columns = f.readline()
+        f.readline()
+        f.readline()
+        f_objetivo = f.readline()
+
+
         for linea in f:
             coincidencia = re.search(patron, linea)
             if coincidencia:
-                k = int(coincidencia.group(1))
+                k = int(coincidencia.group(1)) 
                 i = int(coincidencia.group(2))
                 j = int(coincidencia.group(3))
                 
@@ -75,6 +83,13 @@ def crear_archivo_salida(nombre_fichero_in, nombre_output_glpk="resultado.txt", 
     
     #Lo guardamos en el txt y lo imprimimos en la terminal
     with open(nombre_archivo_salida, "w", encoding="utf-8") as f:
+        f.write(f"(número de restricciones) {rows}\n") #Número restricciones
+        f.write(f"(número de variables de decisión) {columns}\n") #Número de variables de decisión
+        f.write(f"{f_objetivo}\n") #Función objetivo
+        print(f"(número de restricciones) {rows}")
+        print(f"(número de variables de decisión) {columns}")
+        print(f"{f_objetivo}")
+        f.write(resultado_visual)
         f.write(resultado_visual)
         
     print(resultado_visual)
@@ -88,18 +103,16 @@ def main():
 
     # 1. Generamos el archivo .dat a partir de los datos originales
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
-    modelo = "part-1.mod"
+    modelo = "parte-1.mod"
     
-    path_local_glpk = "glpsol" 
+    path_local_glpk = "glpsol" #r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" 
     
     #Configurar la llamada a GLPK
     comando = [path_local_glpk, "--math", modelo, "--data", datos, "--name", "PARTE_1", "--output", "resultado.txt"]
     
-    print("Resolviendo modelo, por favor espera...")
     try:
         # Se añade capture_output=True para mantener la consola limpia
         subprocess.run(comando, check=True, capture_output=True, text=True)
-        print("¡Optimización completada con éxito!")
     except subprocess.CalledProcessError as e:
         print("\nError al ejecutar GLPK:\n", e.stderr)
         return
@@ -107,6 +120,4 @@ def main():
     #Leer el resultado bruto y generar el mapa visual
     crear_archivo_salida(args.nombre_fichero_in, nombre_output_glpk="resultado.txt", nombre_archivo_salida="output-1.txt")
 
-if __name__ == "__main__":
-    # Punto de inicio
-    main()
+main()

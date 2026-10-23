@@ -62,6 +62,8 @@ def crear_archivo_salida(dimensiones, prioridades, pesos, capacidad, nombre_outp
     Lee el volcado de GLPK, filtra las asignaciones activas usando regex,
     y genera un mapa visual 3D separado por pisos.
     """
+    
+    
     L = dimensiones[0]
     H = dimensiones[1]
     
@@ -72,6 +74,14 @@ def crear_archivo_salida(dimensiones, prioridades, pesos, capacidad, nombre_outp
     patron = r"x\[(\d+),(\d+),(\d+),(\d+)\]\s+\*\s+1"
     
     with open(nombre_output_glpk, "r") as f:
+        # leer datos relevantes del txt generado por glpk
+        f.readline()
+        rows = f.readline()
+        columns = f.readline()
+        f.readline()
+        f.readline()
+        f_objetivo = f.readline()
+
         for linea in f:
             coincidencia = re.search(patron, linea)
             if coincidencia:
@@ -100,6 +110,12 @@ def crear_archivo_salida(dimensiones, prioridades, pesos, capacidad, nombre_outp
             resultado_visual += "\n"
 
     with open(nombre_archivo_salida, "w", encoding="utf-8") as f:
+        f.write(f"(número de restricciones) {rows}\n") #Número restricciones
+        f.write(f"(número de variables de decisión) {columns}\n") #Número de variables de decisión
+        f.write(f"{f_objetivo}\n") #Función objetivo
+        print(f"(número de restricciones) {rows}")
+        print(f"(número de variables de decisión) {columns}")
+        print(f"{f_objetivo}")
         f.write(resultado_visual)
         
     print(resultado_visual)
@@ -113,18 +129,16 @@ def main():
 
     #Generamos el archivo .dat a partir de los datos originales
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
-    modelo = "part-2.mod"
+    modelo = "parte-2.mod"
     
-    path = "glpsol" 
+    path = "glpsol" #r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" # 
     
     #Comando a ejecutar
     comando = [path, "--math", modelo, "--data", datos, "--name", "PARTE_2", "--output", "resultado.txt"]
     
-    print("Resolviendo modelo 3D, por favor espera...")
     try:
         #capture_output=True mantiene la consola limpia
         subprocess.run(comando, check=True, capture_output=True, text=True)
-        print("¡Optimización completada con éxito!")
     except subprocess.CalledProcessError as e:
         print("\nError al ejecutar GLPK:\n", e.stderr)
         return
@@ -135,6 +149,5 @@ def main():
     #Parseamos el archivo de resultados de GLPK y generamos el output
     crear_archivo_salida(dimensiones, prioridades, pesos, capacidad, nombre_output_glpk="resultado.txt", nombre_archivo_salida="output-2.txt")
 
-if __name__ == "__main__":
-    #Punto de inicio
-    main()
+
+main()

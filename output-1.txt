@@ -1,4 +1,16 @@
+(número de restricciones) Rows:       25
 
---- DISTRIBUCIÓN DEL PALLET (2x2) ---
-FILA 1 (Fondo) : [30, 40]
-FILA 2 (Acceso): [10, 20]
+(número de variables de decisión) Columns:    81 (81 integer, 81 binary)
+
+Objective:  coste_medio = 3.666666667 (MINimum)
+
+
+--- DISTRIBUCIÓN DEL PALLET (3x3) ---
+FILA 1 (Fondo) : [13, 11, 9]
+FILA 2          : [8, 4, 5]
+FILA 3 (Acceso): [1, 3, 4]
+
+--- DISTRIBUCIÓN DEL PALLET (3x3) ---
+FILA 1 (Fondo) : [13, 11, 9]
+FILA 2          : [8, 4, 5]
+FILA 3 (Acceso): [1, 3, 4]

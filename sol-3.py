@@ -84,7 +84,14 @@ def crear_archivo_salida(nombre_fichero_in, nombre_output_glpk= "resultado.txt",
     # Expresión para capturar x[caja, fila, columna, altura]
     patron = r"x\[(\d+),(\d+),(\d+),(\d+)\]\s+\*\s+1"
     
-    with open(nombre_output_glpk, "r") as f:
+    with open(nombre_output_glpk, "r") as f: #2,3,6
+        f.readline()
+        rows = f.readline()
+        columns = f.readline()
+        f.readline()
+        f.readline()
+        f_objetivo = f.readline()
+
         for linea in f:
             coincidencia = re.search(patron, linea)
             if coincidencia:
@@ -99,19 +106,26 @@ def crear_archivo_salida(nombre_fichero_in, nombre_output_glpk= "resultado.txt",
     # Generamos el texto visual
     resultado_visual = f"\n--- DISTRIBUCIÓN DEL PALLET (HUECOS PERMITIDOS) ({L}x{L}x{H}) ---\n\n"
     for a in range(H):
-        resultado_visual += f"=== PISO {a+1} {'(Suelo)' if a == 0 else '(Superior)'} ===\n"
+        resultado_visual += f"--- PISO {a+1} {'(Suelo)' if a == 0 else '(Superior)'} ---\n"
         for i in range(L):
             etiqueta = f"FILA {i+1} (Fondo) :" if i == 0 else (f"FILA {i+1} (Acceso):" if i == L - 1 else f"FILA {i+1}          :")
             resultado_visual += f"{etiqueta} {matriz[a][i]}\n"
         resultado_visual += "\n"
 
     with open(nombre_archivo_salida, "w", encoding="utf-8") as f:
+        f.write(f"(número de restricciones) {rows}\n") #Número restricciones
+        f.write(f"(número de variables de decisión) {columns}\n") #Número de variables de decisión
+        f.write(f"{f_objetivo}\n") #Función objetivo
+        print(f"(número de restricciones) {rows}")
+        print(f"(número de variables de decisión) {columns}")
+        print(f"{f_objetivo}")
         f.write(resultado_visual)
         
     print(resultado_visual)
 
 
 def main():
+    # print("LINEA UNO DEL MAIN")
     #Argumentos de entrada por línea de comandos
     parser = argparse.ArgumentParser()
     parser.add_argument("--nombre_fichero_in", type=str, required=True)
@@ -119,24 +133,21 @@ def main():
     args = parser.parse_args()
 
     #Rutas locales del solver GLPK y del modelo 3D con espacios vacíos
-    path_local_glpk = "glpsol" 
-    modelo = "part-3.mod"
+    path_local_glpk = "glpsol" #r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" # 
+    modelo = "parte-3.mod"
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
 
     #Invocación de glpsol
-    comando = [path_local_glpk, "--math", modelo, "--data", datos, "--tmlim", "10", "--name", "PARTE_3", "--output", "resultado.txt"]
+    comando = [path_local_glpk, "--math", modelo, "--data", datos, "--name", "PARTE_3", "--output", "resultado.txt"]
     
-    print("Ejecutando, 10S...")
     try:
         #capture_output=True para ocultar el bloque que ensucia
         subprocess.run(comando, check=True, capture_output=True, text=True)
-        print("Optimización completada con éxito!")
     except subprocess.CalledProcessError as e:
         print("\nError al ejecutar GLPK:\n", e.stderr)
         return
 
     crear_archivo_salida(args.nombre_fichero_in, nombre_output_glpk="resultado.txt", nombre_archivo_salida="output-3.txt")
 
-if __name__ == "__main__":
-    # esto hace que se ejecute la función main y por tanto el código que está dentro de él, creo que es mejor así para que esté más estructurado el código
-    main()
+
+main()

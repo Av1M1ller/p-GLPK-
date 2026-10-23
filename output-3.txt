@@ -1,13 +1,21 @@
+(número de restricciones) Rows:       54
 
---- DISTRIBUCIÓN DEL PALLET (HUECOS PERMITIDOS) (3x3x2) ---
+(número de variables de decisión) Columns:    120 (108 integer, 108 binary)
 
-=== PISO 1 (Suelo) ===
-FILA 1 (Fondo) : ['[P:30, W:20, C:110]', '[P:70, W:35, C:75]', '[P:60, W:45, C:70]']
-FILA 2          : ['[P:15, W:10, C:150]', ['-'], ['-']]
-FILA 3 (Acceso): ['[P:10, W:25, C:90]', ['-'], ['-']]
+Objective:  Coste_Medio = 0.7777777778 (MINimum)
 
-=== PISO 2 (Superior) ===
-FILA 1 (Fondo) : ['[P:45, W:30, C:85]', '[P:80, W:30, C:80]', '[P:95, W:40, C:60]']
-FILA 2          : ['[P:25, W:15, C:120]', ['-'], ['-']]
-FILA 3 (Acceso): [['-'], ['-'], ['-']]
+
+--- DISTRIBUCIÓN DEL PALLET (HUECOS PERMITIDOS) (2x2x3) ---
+
+--- PISO 1 (Suelo) ---
+FILA 1 (Fondo) : ['[P:9, W:13, C:13]', '[P:3, W:7, C:19]']
+FILA 2 (Acceso): ['[P:3, W:9, C:2]', '[P:3, W:11, C:6]']
+
+--- PISO 2 (Superior) ---
+FILA 1 (Fondo) : ['[P:4, W:11, C:8]', '[P:11, W:4, C:21]']
+FILA 2 (Acceso): [['-'], '[P:1, W:3, C:13]']
+
+--- PISO 3 (Superior) ---
+FILA 1 (Fondo) : ['[P:13, W:1, C:5]', '[P:17, W:15, C:14]']
+FILA 2 (Acceso): [['-'], ['-']]
 
