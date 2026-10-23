@@ -126,7 +126,7 @@ def main():
 
     #Generamos el archivo .dat a partir de los datos originales
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
-    modelo = "part-2.mod"
+    modelo = "parte-2.mod"
     
     path = "glpsol" #r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" # 
     

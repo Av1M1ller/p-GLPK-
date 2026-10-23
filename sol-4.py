@@ -152,7 +152,7 @@ def main():
     args = parser.parse_args()
 
     path_local_glpk = "glpsol" #r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" #
-    modelo = "part-4.mod"
+    modelo = "parte-4.mod"
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
 
     # Invocación de glpsol 

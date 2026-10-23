@@ -131,7 +131,7 @@ def main():
 
     #Rutas locales del solver GLPK y del modelo 3D con espacios vacíos
     path_local_glpk = "glpsol" #r"C:\Users\Av1M1\Downloads\winglpk-4.65\glpk-4.65\w64\glpsol.exe" # 
-    modelo = "part-3.mod"
+    modelo = "parte-3.mod"
     datos = crear_archivo_data(args.nombre_fichero_in, args.nombre_fichero_dat)
 
     #Invocación de glpsol
